@@ -12,6 +12,7 @@ echo '<p>de cuyo nombre no quiero acordarme...</p>';
 echo "En un lugar de la mancha,"."<br>";
 echo 'de cuyo nombre no quiero acordarme...'."<br>";
 
+
 ?>
 
 <!--previamente vemos 3 formas que podemos utilizar para generar saltos de linea y de esta forma evitar que
