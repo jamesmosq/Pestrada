@@ -1,7 +1,7 @@
 <html>
     <head></head>
     <body>
-        <h1>Mi primer fichero en PHP</h1>
+        <h1>Inicios</h1>
     </body>
 </html>
 <!--en este apartado podemos visualizar la creacion de elementos basicos en el lenguaje de programacion
