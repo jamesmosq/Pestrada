@@ -5,8 +5,12 @@ function imprimirNumeros($limite) {
     }
 }
 
+
 // Prueba de la función
 $limite = 10;
 echo "Lista de números del 1 al $limite: ";
 imprimirNumeros($limite);
 ?>
+
+<?php
+

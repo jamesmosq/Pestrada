@@ -8,6 +8,7 @@ $persona = array(
 
 foreach ($persona as $clave => $valor) {
     echo "$clave: $valor\n";
+    echo "$clave: $valor\n";
 }
 // Salida:
 // nombre: Juan
