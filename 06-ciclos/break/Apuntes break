@@ -1,0 +1,86 @@
+El break en PHP se utiliza dentro de bucles (como for, foreach, while, y do-while) y en estructuras de control como switch para salir inmediatamente de la estructura de control. Cuando se ejecuta break, el control del programa pasa a la siguiente línea de código fuera del bucle o estructura de control.
+Ejemplo 1: Usando break en un bucle foreach
+Este ejemplo recorre un array de números y detiene la iteración cuando encuentra el primer número mayor que 5.
+<?php
+$numeros = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+foreach ($numeros as $numero) {
+    if ($numero > 5) {
+        break; // Detiene la iteración cuando el número es mayor que 5
+    }
+    echo $numero . "\n"; // Solo se ejecuta para números menores o iguales a 5
+}
+?>
+
+Explicación
+Se define un array $numeros con números del 1 al 10.
+El foreach itera sobre cada número en el array.
+Si el número es mayor que 5 ($numero > 5), la instrucción break detiene el bucle.
+Solo los números menores o iguales a 5 se imprimen antes de que el bucle se detenga.
+
+Ejemplo 2: Usando break en un bucle for
+Este ejemplo recorre los números del 1 al 10 y detiene la iteración cuando encuentra un número divisible por 4.
+<?php
+for ($i = 1; $i <= 10; $i++) {
+    if ($i % 4 == 0) {
+        break; // Detiene la iteración cuando el número es divisible por 4
+    }
+    echo $i . "\n"; // Solo se ejecuta para números no divisibles por 4 hasta encontrar el primero que sí lo es
+}
+?>
+Explicación
+El bucle for recorre los números del 1 al 10.
+Si el número es divisible por 4 ($i % 4 == 0), la instrucción break detiene el bucle.
+Solo se imprimen los números hasta encontrar el primer número divisible por 4.
+
+Ejemplo 3: Usando break en un bucle while
+Este ejemplo incrementa un contador hasta que su valor sea mayor que 7 y detiene la iteración.
+<?php
+$i = 1;
+
+while (true) { // Bucle infinito intencionado
+    if ($i > 7) {
+        break; // Detiene la iteración cuando el contador es mayor que 7
+    }
+    echo $i . "\n";
+    $i++;
+}
+?>
+Explicación
+Se inicializa la variable $i en 1.
+El bucle while (true) es un bucle infinito.
+Si el valor de $i es mayor que 7 ($i > 7), la instrucción break detiene el bucle.
+Se incrementa $i en cada iteración.
+El bucle se detiene y solo imprime los números hasta 7.
+
+
+Ejemplo 4: Usando break en una estructura switch
+Este ejemplo evalúa una variable de calificación y ejecuta un caso diferente dependiendo del valor.
+<?php
+$calificacion = 'B';
+
+switch ($calificacion) {
+    case 'A':
+        echo "Excelente\n";
+        break; // Detiene la evaluación después de ejecutar este caso
+    case 'B':
+        echo "Muy bien\n";
+        break; // Detiene la evaluación después de ejecutar este caso
+    case 'C':
+        echo "Bien\n";
+        break; // Detiene la evaluación después de ejecutar este caso
+    case 'D':
+        echo "Pasable\n";
+        break; // Detiene la evaluación después de ejecutar este caso
+    default:
+        echo "Calificación no válida\n";
+        break; // Detiene la evaluación después de ejecutar este caso
+}
+?>
+Explicación
+Se define una variable $calificacion con el valor 'B'.
+La estructura switch evalúa el valor de $calificacion.
+Dependiendo del valor, se ejecuta el caso correspondiente.
+La instrucción break detiene la evaluación después de ejecutar el caso correspondiente.
+En este ejemplo, se imprime "Muy bien" porque $calificacion es 'B'.
+

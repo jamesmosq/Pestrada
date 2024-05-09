@@ -1,0 +1,17 @@
+Las variables superglobales en PHP son arreglos asociativos que están disponibles en todos los ámbitos del script PHP, lo que significa que pueden ser accesibles desde cualquier parte del código, incluyendo funciones, métodos, archivos incluidos, etc. Estas variables se denominan "superglobales" porque están siempre disponibles y mantienen su valor a lo largo de toda la ejecución del script.
+
+Las variables superglobales se utilizan comúnmente para pasar información entre diferentes partes de un script PHP, así como para acceder a información del entorno del servidor web, datos del usuario, cookies, sesiones, etc.
+
+Aquí tienes algunas de las variables superglobales más comunes en PHP:
+
+$_GET: Utilizada para recoger datos enviados a través de la URL.
+$_POST: Utilizada para recoger datos enviados a través de un formulario HTML con el método POST.
+$_REQUEST: Utilizada para recoger datos tanto de la URL como de un formulario HTML.
+$_SESSION: Utilizada para almacenar variables de sesión a través de múltiples páginas.
+$_COOKIE: Utilizada para recoger variables almacenadas en las cookies del navegador del usuario.
+$_SERVER: Contiene información sobre encabezados, rutas y ubicaciones del script.
+$_FILES: Utilizada para recoger archivos subidos mediante un formulario HTML con el atributo enctype="multipart/form-data".
+$_ENV: Contiene información sobre variables de entorno.
+
+aqui se amplia con ejercicios
+https://programadorwebvalencia.com/cursos/php/formularios-2/

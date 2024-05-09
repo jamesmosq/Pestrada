@@ -1,0 +1,67 @@
+Las funciones en PHP te permiten encapsular un conjunto de instrucciones y ejecutarlas cuando las necesites. Esto te ayuda a modularizar tu código y a reutilizarlo más fácilmente. Aquí tienes una guía básica para crear y utilizar funciones en PHP:
+Sintaxis básica de una función en PHP
+<?php
+function nombre_de_la_funcion() {
+    // Código a ejecutar
+}
+?>
+
+Ejemplo de una función
+<?php
+// Definición de la función
+function saludar() {
+    echo "¡Hola, mundo!";
+}
+
+// Llamada a la función
+saludar(); // Output: ¡Hola, mundo!
+?>
+
+Parámetros de funciones
+Las funciones pueden aceptar parámetros, que son valores que la función utiliza durante su ejecución. Estos parámetros se definen entre paréntesis en la declaración de la función.
+<?php
+function saludar($nombre) {
+    echo "¡Hola, $nombre!";
+}
+
+saludar("Juan"); // Output: ¡Hola, Juan!
+saludar("María"); // Output: ¡Hola, María!
+?>
+
+Valor de retorno
+Las funciones también pueden devolver un valor utilizando la palabra clave return. Este valor puede ser de cualquier tipo de dato (entero, cadena, arreglo, etc.).
+<?php
+function suma($a, $b) {
+    $resultado = $a + $b;
+    return $resultado;
+}
+
+$total = suma(5, 3);
+echo "La suma es: " . $total; // Output: La suma es: 8
+?>
+
+Alcance de variables
+Las variables definidas dentro de una función solo son visibles dentro de esa función (a menos que se utilice la palabra clave global para hacerlas globales).
+<?php
+function prueba() {
+    $x = 5; // variable local
+    echo $x;
+}
+
+prueba(); // Output: 5
+// echo $x; // Esto dará un error ya que $x no está definido fuera de la función
+?>
+
+Funciones con argumentos predeterminados
+Puedes asignar valores predeterminados a los parámetros de una función. Si no se proporciona un valor para el parámetro cuando se llama a la función, se utilizará el valor predeterminado.
+<?php
+function saludar($nombre = "mundo") {
+    echo "¡Hola, $nombre!";
+}
+
+saludar(); // Output: ¡Hola, mundo!
+saludar("Juan"); // Output: ¡Hola, Juan!
+?>
+
+
+

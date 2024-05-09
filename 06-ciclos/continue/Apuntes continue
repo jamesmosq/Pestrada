@@ -1,0 +1,59 @@
+El continue en PHP se usa dentro de bucles para saltar el resto del código en la iteración actual y pasar a la siguiente iteración del bucle. Es útil cuando necesitas omitir ciertas condiciones y continuar con la siguiente iteración sin ejecutar el código restante en la iteración actual.
+Ejemplo 1: Usando continue en un bucle foreach
+Este ejemplo recorre un array de números y omite los números impares, imprimiendo solo los números pares.
+
+<?php
+$numeros = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+foreach ($numeros as $numero) {
+    if ($numero % 2 != 0) {
+        continue; // Si el número es impar, omite el resto de la iteración
+    }
+    echo $numero . "\n"; // Solo se ejecuta para números pares
+}
+?>
+
+Explicación
+Se define un array $numeros con números del 1 al 10.
+El foreach itera sobre cada número en el array.
+Si el número es impar ($numero % 2 != 0), la instrucción continue hace que el bucle pase a la siguiente iteración.
+Solo los números pares se imprimen.
+
+Ejemplo 2: Usando continue en un bucle for
+Este ejemplo recorre los números del 1 al 10 y omite los números divisibles por 3, imprimiendo el resto de los números.
+
+<?php
+for ($i = 1; $i <= 10; $i++) {
+    if ($i % 3 == 0) {
+        continue; // Si el número es divisible por 3, omite el resto de la iteración
+    }
+    echo $i . "\n"; // Solo se ejecuta para números no divisibles por 3
+}
+?>
+
+Explicación
+El bucle for recorre los números del 1 al 10.
+Si el número es divisible por 3 ($i % 3 == 0), la instrucción continue hace que el bucle pase a la siguiente iteración.
+Solo los números no divisibles por 3 se imprimen.
+
+
+Ejemplo 3: Usando continue en un bucle while
+Este ejemplo recorre los números del 1 al 10 y omite los números menores o iguales a 5, imprimiendo solo los números mayores a 5.
+<?php
+$i = 1;
+
+while ($i <= 10) {
+    $i++;
+    if ($i <= 5) {
+        continue; // Si el número es menor o igual a 5, omite el resto de la iteración
+    }
+    echo $i . "\n"; // Solo se ejecuta para números mayores a 5
+}
+?>
+
+Explicación
+Se inicializa la variable $i en 1.
+El bucle while recorre los números mientras $i sea menor o igual a 10.
+Se incrementa $i al inicio de cada iteración.
+Si el número es menor o igual a 5 ($i <= 5), la instrucción continue hace que el bucle pase a la siguiente iteración.
+Solo los números mayores a 5 se imprimen.

@@ -1,0 +1,98 @@
+El bucle while en PHP se utiliza para ejecutar un bloque de código repetidamente, siempre y cuando una condición específica se evalúe como verdadera.
+La estructura básica de un bucle while es la siguiente:
+
+while (condición) {
+    // Código a ejecutar en cada iteración
+}
+
+Componentes del bucle while
+Condición: Es una expresión que se evalúa antes de cada iteración. Mientras la condición sea verdadera, el bucle continuará ejecutándose. Si la condición es falsa, el bucle se detiene.
+Bloque de código: Es el conjunto de instrucciones que se ejecutarán repetidamente mientras la condición sea verdadera.
+Ejemplos
+Imprimir números del 1 al 10
+
+<?php
+$i = 1;
+while ($i <= 10) {
+    echo $i . "<br>";
+    $i++;
+}
+?>
+
+En este ejemplo:
+
+Condición: $i <= 10
+Bloque de código: echo $i . "<br>"; $i++;
+Inicialización: $i = 1 (fuera del bucle)
+Sumar números del 1 al 100
+
+<?php
+$suma = 0;
+$i = 1;
+while ($i <= 100) {
+    $suma += $i;
+    $i++;
+}
+echo "La suma de los números del 1 al 100 es: " . $suma;
+?>
+
+En este ejemplo:
+
+Condición: $i <= 100
+Bloque de código: $suma += $i; $i++;
+Imprimir los elementos de un array
+
+<?php
+$colores = array("Rojo", "Verde", "Azul", "Amarillo");
+$i = 0;
+while ($i < count($colores)) {
+    echo $colores[$i] . "<br>";
+    $i++;
+}
+?>
+
+En este ejemplo:
+
+Condición: $i < count($colores)
+Bloque de código: echo $colores[$i] . "<br>"; $i++;
+Explicación detallada
+Condición
+
+Antes de cada iteración del bucle, la condición se evalúa.
+Si la condición es verdadera, el bloque de código dentro del bucle se ejecuta.
+Si la condición es falsa, el bucle se detiene y la ejecución continúa con el código siguiente al bucle.
+Bloque de código
+
+Es el conjunto de instrucciones que se ejecutan repetidamente mientras la condición sea verdadera.
+Dentro del bloque de código, generalmente hay una instrucción que modifica una variable usada en la condición para eventualmente hacer que la condición sea falsa y evitar un bucle infinito.
+Ejemplo de bucle infinito
+Un bucle while puede fácilmente convertirse en un bucle infinito si la condición nunca se evalúa como falsa. Por ejemplo:
+
+<?php
+$i = 1;
+while ($i <= 10) {
+    echo $i . "<br>";
+    // Nota: Olvide incrementar $i, por lo que $i siempre será 1
+}
+?>
+
+En este ejemplo, $i nunca se incrementa, por lo que la condición $i <= 10 siempre es verdadera, resultando en un bucle infinito.
+
+Ejemplo 4: Pedir una contraseña hasta que sea correcta
+Este ejemplo muestra cómo se puede usar un bucle while para repetir una operación hasta que se cumpla una condición, como pedir al usuario que ingrese una contraseña correcta.
+<?php
+$contraseña_correcta = "1234";
+$contraseña = "";
+
+while ($contraseña !== $contraseña_correcta) {
+    $contraseña = readline("Introduce la contraseña: ");
+}
+
+echo "¡Contraseña correcta!";
+?>
+
+En este ejemplo:
+
+Condición: $contraseña !== $contraseña_correcta
+Bloque de código: $contraseña = readline("Introduce la contraseña: ");
+El bucle continuará pidiendo al usuario que ingrese la contraseña hasta que la contraseña ingresada sea igual a la contraseña correcta.
