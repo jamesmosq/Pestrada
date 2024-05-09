@@ -1,0 +1,35 @@
+1.  Sistema de vehículos:
+•	Crea una clase base Vehiculo con propiedades como marca, modelo, año y métodos como arrancar, frenar, acelerar.
+•	Crea clases derivadas Automovil, Motocicleta y Camion que hereden de Vehiculo y agreguen propiedades y métodos específicos.
+•	Implementa la lógica para manipular diferentes tipos de vehículos a través de las clases derivadas.
+
+2.Sistema de animales:
+•	Crea una clase base Animal con propiedades como nombre, edad y métodos como comer, dormir, moverse.
+•	Crea clases derivadas Perro, Gato y Pez que hereden de Animal y agreguen propiedades y métodos específicos.
+•	Implementa la lógica para interactuar con diferentes tipos de animales a través de las clases derivadas.
+
+3. Sistema de formas geométricas:
+•	Crea una clase base FormaGeometrica con propiedades como color y métodos como calcularArea, calcularPerimetro.
+•	Crea clases derivadas Circulo, Rectangulo y Triangulo que hereden de FormaGeometrica y agreguen propiedades y métodos específicos.
+•	Implementa la lógica para trabajar con diferentes tipos de formas geométricas a través de las clases derivadas.
+
+4.Sistema de empleados:
+•	Crea una clase base Empleado con propiedades como nombre, cargo y métodos como calcularSalario, calcularBonificacion.
+•	Crea clases derivadas Gerente, Analista y Asistente que hereden de Empleado y agreguen propiedades y métodos específicos.
+•	Implementa la lógica para administrar diferentes tipos de empleados a través de las clases derivadas.
+
+5.Sistema de instrumentos musicales:
+•	Crea una clase base InstrumentoMusical con propiedades como tipo, material y métodos como tocar, afinar.
+•	Crea clases derivadas Guitarra, Piano y Violin que hereden de InstrumentoMusical y agreguen propiedades y métodos específicos.
+•	Implementa la lógica para manipular diferentes tipos de instrumentos musicales a través de las clases derivadas.
+
+6.Sistema de dispositivos electrónicos:
+•	Crea una clase base DispositivoElectronico con propiedades como marca, modelo y métodos como encender, apagar, cargar.
+•	Crea clases derivadas Smartphone, Laptop y Televisor que hereden de DispositivoElectronico y agreguen propiedades y métodos específicos.
+•	Implementa la lógica para interactuar con diferentes tipos de dispositivos electrónicos a través de las clases derivadas.
+
+7.Sistema de documentos:
+•	Crea una clase base Documento con propiedades como título, autor y métodos como imprimir, guardar.
+•	Crea clases derivadas Libro, Articulo y Reporte que hereden de Documento y agreguen propiedades y métodos específicos.
+•	Implementa la lógica para manipular diferentes tipos de documentos a través de las clases derivadas.
+

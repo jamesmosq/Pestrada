@@ -1,0 +1,21 @@
+-- Crear la base de datos
+CREATE DATABASE IF NOT EXISTS todo_list;
+
+-- Usar la base de datos
+USE todo_list;
+
+-- Crear la tabla todos
+CREATE TABLE IF NOT EXISTS todos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    task VARCHAR(255) NOT NULL,
+    is_completed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insertar algunas tareas de ejemplo (opcional)
+INSERT INTO todos (task) VALUES 
+('Comprar víveres'),
+('Hacer ejercicio'),
+('Estudiar PHP'),
+('Leer un libro');
+('Caminar en la lluvia ');

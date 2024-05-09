@@ -19,9 +19,13 @@ $persona2 = new persona();
 $persona2 ->nombre = "James";
 $persona2->edad = 12;
 
-echo $persona2->saludar() ."<br>";
+$persona3 = new Persona();
+$persona3 ->nombre = "Pedro";
+$persona3 ->edad = 56;
 
 // Llamar al método
+echo $persona2->saludar() ."<br>";
+echo $persona3->saludar() . "<br>";
 echo $persona1->saludar();
 //Ejemplo 1: Clase básica
 ?>
