@@ -15,6 +15,10 @@ echo 'de cuyo nombre no quiero acordarme...'."<br>";
 
 ?>
 
+<?php
+
+?>
+
 <!--previamente vemos 3 formas que podemos utilizar para generar saltos de linea y de esta forma evitar que
 nuestra informacion que va de salida se nos presente de pegado, si ejecutan el codigo se daran cuenta que
  se ve de forma mas legible-->

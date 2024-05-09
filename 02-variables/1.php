@@ -24,7 +24,6 @@ $edad = 31; // Enteros (Integer)
 $altura = 1.72; // Decimales, usando el punto en lugar de la coma (Float)
 $mayorEdad = True; // Verdad o mentira (Boolean)
 
-
 ?>
 </body>
 </html>

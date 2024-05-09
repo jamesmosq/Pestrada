@@ -2,8 +2,9 @@
 <head></head>
 <body>
 <h1>sintaxis basica</h1>
-<?php echo 'Y funciona perfecto!'; ?>
-<?php print 'Y funciona perfecto!'; ?>
+<?php echo 'Y funciona perfecto!'."<br>" ?>
+
+<?php print 'Y funciona perfecto!'.'<br>' ?>
 </body>
 </html>
 
