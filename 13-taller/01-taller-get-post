@@ -1,3 +1,6 @@
+Realizacion de la actividad
+Sustentación del código: 70 %
+Ejecución del código: 30 %
 1.Calculadora básica:
 Crea un formulario HTML con campos para dos números y operaciones básicas (suma, resta, multiplicación, división).
 Envía el formulario mediante el método POST a un archivo PHP.
