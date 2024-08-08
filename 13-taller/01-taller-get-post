@@ -1,0 +1,53 @@
+1.Calculadora básica:
+Crea un formulario HTML con campos para dos números y operaciones básicas (suma, resta, multiplicación, división).
+Envía el formulario mediante el método POST a un archivo PHP.
+En el archivo PHP, recibe los valores de los campos, realiza los cálculos y muestra los resultados.
+
+
+2.Conversor de unidades:
+Crea un formulario HTML con campos para ingresar una cantidad y seleccionar la unidad de origen y la unidad de destino (de: metros a pies, de libras a kilogramos, metros a millas, gramo a kilogramo).
+Envía el formulario mediante el método POST a un archivo PHP.
+En el archivo PHP, recibe los valores de los campos, realiza la conversión y muestra el resultado.
+
+
+3.Formulario de registro simple:
+Crea un formulario HTML para el registro de usuarios con campos como nombre, apellido, correo electrónico y contraseña.
+Envía el formulario mediante el método POST a un archivo PHP.
+En el archivo PHP, recibe los datos del formulario y los almacena en un archivo de texto o en variables de sesión.
+Muestra un mensaje de confirmación al usuario.(este se hace después de la actividad de investigación)
+
+
+4.Votación simple:
+Crea una página HTML que muestre una pregunta y opciones de respuesta.
+Agrega botones o enlaces que envíen la opción seleccionada mediante el método GET a un archivo PHP.
+En el archivo PHP, recibe la opción seleccionada y la almacena en un archivo de texto o en variables de sesión.
+Muestra los resultados de la votación.
+
+
+5.Gestor de tareas simple:
+Crea un formulario HTML para agregar nuevas tareas, con campos como título, descripción y prioridad.
+Envía el formulario mediante el método POST a un archivo PHP.
+En el archivo PHP, recibe los datos del formulario y los almacena en un array o en un archivo de texto.
+Crea una página HTML que muestre la lista de tareas y permita marcarlas como completadas (enviar el ID de la tarea mediante GET).
+En un archivo PHP, recibe el ID de la tarea y la marca como completada en el array o archivo de texto.
+
+6.Encuesta en línea:
+Crea una página HTML que muestre una pregunta de encuesta y varias opciones de respuesta.
+Agrega botones o enlaces que envíen la opción seleccionada mediante el método GET a un archivo PHP.
+En el archivo PHP, recibe la opción seleccionada y la almacena en un archivo de texto o en variables de sesión.
+Muestra los resultados de la encuesta en una página HTML.
+
+
+7.Juego de adivinar el número:
+Crea un archivo PHP que genere un número aleatorio entre 1 y 100.
+Crea una página HTML que muestre un formulario para que el usuario ingrese un número.
+Envía el formulario mediante el método POST a un archivo PHP.
+En el archivo PHP, recibe el número ingresado por el usuario y lo compara con el número aleatorio generado anteriormente.
+Muestra un mensaje indicando si el usuario acertó o no, y cuántos intentos le tomó.
+
+
+8.Listado de artículos:
+Crea un array en un archivo PHP que contenga información sobre varios artículos (título, descripción, precio).
+Crea una página HTML que muestre una lista de los artículos.
+Agrega enlaces a cada artículo que envíen el ID del artículo mediante el método GET a un archivo PHP.
+En el archivo PHP, recibe el ID del artículo y muestra los detalles del artículo en una página HTML.
