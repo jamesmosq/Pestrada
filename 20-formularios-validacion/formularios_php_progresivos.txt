@@ -1,0 +1,1756 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║        FORMULARIOS PHP — DEL DATO AL REGISTRO EN BASE DE DATOS             ║
+║        Serie de ejercicios progresivos                                     ║
+║                                                                            ║
+║        Programa : Analisis y Desarrollo de Sistemas de Informacion         ║
+║        Instructor: James Mosquera            Itagüí — Antioquia            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+PRESENTACION
+─────────────
+Esta serie de ejercicios construye conocimiento de forma progresiva.
+Cada ejercicio agrega exactamente una idea nueva sobre la anterior.
+Al finalizar se tendra un formulario completo que guarda datos en MySQL
+y responde al usuario con SweetAlert2.
+
+  Ejercicio 1  →  Formulario envia datos por GET  (sin PHP, sin BD)
+  Ejercicio 2  →  Formulario envia datos por POST a un archivo PHP
+  Ejercicio 3  →  PHP valida los datos antes de procesarlos
+  Ejercicio 4  →  PHP guarda los datos en MySQL por primera vez
+  Ejercicio 5  →  SweetAlert2 muestra el resultado de la operacion
+  Ejercicio 6  →  CRUD completo con Bootstrap + SweetAlert2 + MySQL
+
+TECNOLOGIAS
+────────────
+  Bootstrap 5   Framework CSS — diseno sin escribir CSS propio
+  SweetAlert2   Alertas modernas en JavaScript
+  PHP           Lenguaje del servidor
+  MySQL / PDO   Base de datos y conexion segura
+
+ESTRUCTURA DE CARPETAS
+───────────────────────
+  Crear la carpeta "formularios-php" dentro de C:\wamp64\www\
+
+  formularios-php/
+  ├── ejercicio1/
+  │   └── formulario.html
+  ├── ejercicio2/
+  │   ├── formulario.php
+  │   └── recibir.php
+  ├── ejercicio3/
+  │   ├── formulario.php
+  │   └── recibir.php
+  ├── ejercicio4/
+  │   ├── formulario.php
+  │   └── guardar.php
+  ├── ejercicio5/
+  │   ├── formulario.php
+  │   └── guardar.php
+  └── ejercicio6/
+      ├── conexion.php
+      ├── index.php
+      ├── crear.php
+      ├── guardar.php
+      ├── editar.php
+      ├── actualizar.php
+      └── eliminar.php
+
+
+════════════════════════════════════════════════════════════════════════════════
+  EJERCICIO 1 — EL DATO VIAJA POR LA URL (metodo GET)
+  Archivo: ejercicio1/formulario.html
+════════════════════════════════════════════════════════════════════════════════
+
+CONCEPTO NUEVO: metodo GET
+  Cuando un formulario usa method="GET", los datos viajan visibles
+  en la URL del navegador:
+    http://...recibir.php?nombre=Carlos&ciudad=Medellin
+
+  Util para: busquedas, filtros, consultas
+  No usar para: contrasenas, datos sensibles
+
+OBJETIVO
+  Crear un formulario de consulta de clima que envia ciudad por GET.
+  No hay PHP en este ejercicio, solo HTML puro con Bootstrap.
+
+─── ejercicio1/formulario.html ─────────────────────────────────────────────────
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejercicio 1 — Metodo GET</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Consulta de Clima</h5>
+                </div>
+                <div class="card-body">
+
+                    <!--
+                        action → a donde se envian los datos
+                        method → como viajan (GET = en la URL)
+                    -->
+                    <form action="recibir.html" method="GET">
+
+                        <div class="mb-3">
+                            <label for="ciudad" class="form-label">Ciudad</label>
+                            <input type="text"
+                                   id="ciudad"
+                                   name="ciudad"
+                                   class="form-control"
+                                   placeholder="Ej: Medellin"
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="pais" class="form-label">Pais</label>
+                            <select id="pais" name="pais" class="form-select">
+                                <option value="colombia">Colombia</option>
+                                <option value="mexico">Mexico</option>
+                                <option value="argentina">Argentina</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            Consultar
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+
+────────────────────────────────────────────────────────────────────────────────
+
+ACTIVIDAD
+  1. Crear el archivo con el codigo anterior
+  2. Abrir en el navegador: http://localhost/formularios-php/ejercicio1/formulario.html
+  3. Llenar el formulario y hacer clic en "Consultar"
+  4. Observar la URL resultante en el navegador
+  5. Responder:
+       - ?En que parte de la URL aparece el nombre de la ciudad?
+       - ?Que pasa si escribes la ciudad con espacios?
+       - ?Por que el selector "pais" tambien aparece en la URL?
+
+NOTA: No hay recibir.html todavia, por eso dara error 404. Eso es normal.
+      Lo importante es observar como cambia la URL al enviar.
+
+
+════════════════════════════════════════════════════════════════════════════════
+  EJERCICIO 2 — PHP RECIBE LOS DATOS (metodo POST)
+  Archivos: ejercicio2/formulario.php  |  ejercicio2/recibir.php
+════════════════════════════════════════════════════════════════════════════════
+
+CONCEPTO NUEVO: metodo POST y superglobal $_POST
+  Con method="POST" los datos NO aparecen en la URL.
+  Viajan en el cuerpo de la peticion HTTP (invisible para el usuario).
+  PHP los recibe en el array superglobal $_POST.
+
+  Acceder a un campo:  $_POST['nombre_del_campo']
+  El nombre del campo en PHP debe coincidir exactamente con el
+  atributo name="" del input en el formulario.
+
+OBJETIVO
+  Formulario de inscripcion a un evento. El archivo recibir.php
+  muestra en pantalla los datos que llegan del formulario.
+
+─── ejercicio2/formulario.php ──────────────────────────────────────────────────
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejercicio 2 — Metodo POST</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Inscripcion al Evento Tech SENA 2025</h5>
+                </div>
+                <div class="card-body">
+
+                    <form action="recibir.php" method="POST">
+
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre completo</label>
+                            <input type="text"
+                                   id="nombre"
+                                   name="nombre"
+                                   class="form-control"
+                                   placeholder="Ej: Carlos Perez"
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email"
+                                   id="email"
+                                   name="email"
+                                   class="form-control"
+                                   placeholder="Ej: carlos@sena.edu.co"
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="modalidad" class="form-label">Modalidad</label>
+                            <select id="modalidad" name="modalidad" class="form-select">
+                                <option value="presencial">Presencial</option>
+                                <option value="virtual">Virtual</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Areas de interes</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                       name="areas[]" value="web" id="web">
+                                <label class="form-check-label" for="web">
+                                    Desarrollo Web
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                       name="areas[]" value="datos" id="datos">
+                                <label class="form-check-label" for="datos">
+                                    Ciencia de Datos
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                       name="areas[]" value="ciberseguridad" id="ciber">
+                                <label class="form-check-label" for="ciber">
+                                    Ciberseguridad
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">
+                            Inscribirme
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+
+─── ejercicio2/recibir.php ─────────────────────────────────────────────────────
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datos Recibidos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Datos recibidos por POST</h5>
+                </div>
+                <div class="card-body">
+
+                    <?php
+                    // $_POST es un array con todos los datos del formulario
+                    // El indice es el atributo name="" de cada campo
+
+                    $nombre    = $_POST['nombre']    ?? 'No enviado';
+                    $email     = $_POST['email']     ?? 'No enviado';
+                    $modalidad = $_POST['modalidad'] ?? 'No enviado';
+
+                    // Los checkboxes con name="areas[]" llegan como array
+                    $areas = $_POST['areas'] ?? [];
+                    ?>
+
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <th>Nombre</th>
+                                <td><?php echo htmlspecialchars($nombre); ?></td>
+                            </tr>
+                            <tr>
+                                <th>Email</th>
+                                <td><?php echo htmlspecialchars($email); ?></td>
+                            </tr>
+                            <tr>
+                                <th>Modalidad</th>
+                                <td><?php echo htmlspecialchars($modalidad); ?></td>
+                            </tr>
+                            <tr>
+                                <th>Areas de interes</th>
+                                <td>
+                                    <?php if (empty($areas)): ?>
+                                        <span class="text-muted">Ninguna seleccionada</span>
+                                    <?php else: ?>
+                                        <?php foreach ($areas as $area): ?>
+                                            <span class="badge bg-success me-1">
+                                                <?php echo htmlspecialchars($area); ?>
+                                            </span>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!--
+                        Mostrar el contenido completo de $_POST (util para depurar).
+                        En produccion real NUNCA se muestra esto al usuario.
+                    -->
+                    <hr>
+                    <p class="text-muted small">
+                        <strong>Contenido de $_POST (solo para depuracion):</strong>
+                    </p>
+                    <pre class="bg-light border rounded p-2 small">
+<?php print_r($_POST); ?>
+                    </pre>
+
+                    <a href="formulario.php" class="btn btn-outline-success mt-2">
+                        Volver al formulario
+                    </a>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+
+────────────────────────────────────────────────────────────────────────────────
+
+ACTIVIDAD
+  1. Crear los dos archivos
+  2. Llenar el formulario y enviar
+  3. Observar lo que muestra recibir.php
+  4. Responder:
+       - ?Los datos aparecen en la URL como en el Ejercicio 1?
+       - ?Que muestra print_r($_POST) cuando no se marca ningun checkbox?
+       - ?Que pasa si en el navegador se accede directamente a recibir.php
+         sin pasar por el formulario?
+
+
+════════════════════════════════════════════════════════════════════════════════
+  EJERCICIO 3 — PHP VALIDA LOS DATOS
+  Archivos: ejercicio3/formulario.php  |  ejercicio3/recibir.php
+════════════════════════════════════════════════════════════════════════════════
+
+CONCEPTO NUEVO: validacion del lado del servidor
+  El navegador puede validar con required, type="email", etc.
+  Pero esa validacion se puede desactivar o evadir.
+  PHP debe validar siempre, independientemente de lo que haga el navegador.
+
+  Funciones utiles de PHP para validar:
+    empty($valor)              → true si esta vacio o es null
+    trim($valor)               → elimina espacios al inicio y al final
+    strlen($valor)             → longitud del string
+    filter_var($v, FILTER_*)   → valida emails, URLs, numeros, etc.
+    is_numeric($valor)         → true si es un numero
+
+OBJETIVO
+  Formulario de registro de producto. PHP valida cada campo y
+  devuelve mensajes de error especificos por campo.
+
+─── ejercicio3/formulario.php ──────────────────────────────────────────────────
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejercicio 3 — Validacion PHP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Registro de Producto</h5>
+                </div>
+                <div class="card-body">
+
+                    <?php
+                    // Recuperar los errores que venga de recibir.php
+                    // session_start() permite compartir datos entre paginas
+                    session_start();
+
+                    $errores = $_SESSION['errores'] ?? [];
+                    $datos   = $_SESSION['datos']   ?? [];
+
+                    // Limpiar la sesion despues de leer
+                    unset($_SESSION['errores'], $_SESSION['datos']);
+                    ?>
+
+                    <?php if (!empty($errores)): ?>
+                    <div class="alert alert-danger">
+                        <strong>Corrige los siguientes errores:</strong>
+                        <ul class="mb-0 mt-1">
+                            <?php foreach ($errores as $error): ?>
+                                <li><?php echo htmlspecialchars($error); ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                    <?php endif; ?>
+
+                    <form action="recibir.php" method="POST">
+
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">
+                                Nombre del producto
+                            </label>
+                            <input type="text"
+                                   id="nombre"
+                                   name="nombre"
+                                   class="form-control <?php echo isset($errores['nombre']) ? 'is-invalid' : ''; ?>"
+                                   value="<?php echo htmlspecialchars($datos['nombre'] ?? ''); ?>">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="precio" class="form-label">
+                                Precio (COP)
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text"
+                                       id="precio"
+                                       name="precio"
+                                       class="form-control"
+                                       value="<?php echo htmlspecialchars($datos['precio'] ?? ''); ?>"
+                                       placeholder="Ej: 25000">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="stock" class="form-label">
+                                Unidades en stock
+                            </label>
+                            <input type="number"
+                                   id="stock"
+                                   name="stock"
+                                   class="form-control"
+                                   value="<?php echo htmlspecialchars($datos['stock'] ?? ''); ?>"
+                                   min="0">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="descripcion" class="form-label">
+                                Descripcion
+                            </label>
+                            <textarea id="descripcion"
+                                      name="descripcion"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Minimo 10 caracteres"><?php
+                                echo htmlspecialchars($datos['descripcion'] ?? '');
+                            ?></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning w-100 text-dark">
+                            Registrar Producto
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+
+─── ejercicio3/recibir.php ─────────────────────────────────────────────────────
+
+<?php
+session_start();
+
+// Si no llego por POST, redirigir al formulario
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: formulario.php');
+    exit;
+}
+
+// ── Capturar y limpiar datos ────────────────────────────────────────────────
+$nombre      = trim($_POST['nombre']      ?? '');
+$precio      = trim($_POST['precio']      ?? '');
+$stock       = trim($_POST['stock']       ?? '');
+$descripcion = trim($_POST['descripcion'] ?? '');
+
+// ── Validar cada campo ───────────────────────────────────────────────────────
+$errores = [];
+
+if (empty($nombre)) {
+    $errores[] = 'El nombre del producto es obligatorio.';
+} elseif (strlen($nombre) < 3) {
+    $errores[] = 'El nombre debe tener al menos 3 caracteres.';
+}
+
+if (empty($precio)) {
+    $errores[] = 'El precio es obligatorio.';
+} elseif (!is_numeric($precio)) {
+    $errores[] = 'El precio debe ser un numero.';
+} elseif ((float)$precio <= 0) {
+    $errores[] = 'El precio debe ser mayor a cero.';
+}
+
+if ($stock === '') {
+    $errores[] = 'El stock es obligatorio.';
+} elseif (!is_numeric($stock) || (int)$stock < 0) {
+    $errores[] = 'El stock debe ser un numero igual o mayor a cero.';
+}
+
+if (empty($descripcion)) {
+    $errores[] = 'La descripcion es obligatoria.';
+} elseif (strlen($descripcion) < 10) {
+    $errores[] = 'La descripcion debe tener al menos 10 caracteres.';
+}
+
+// ── Si hay errores: guardar en sesion y regresar al formulario ───────────────
+if (!empty($errores)) {
+    // Guardar errores para mostrarlos en el formulario
+    $_SESSION['errores'] = $errores;
+    // Guardar los datos para no perder lo que el usuario escribio
+    $_SESSION['datos'] = [
+        'nombre'      => $nombre,
+        'precio'      => $precio,
+        'stock'       => $stock,
+        'descripcion' => $descripcion,
+    ];
+    header('Location: formulario.php');
+    exit;
+}
+
+// ── Si todo es valido: mostrar resumen ───────────────────────────────────────
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Producto validado</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="alert alert-success">
+                <h5>Datos validos. El producto seria guardado:</h5>
+            </div>
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <table class="table">
+                        <tr><th>Nombre</th>
+                            <td><?php echo htmlspecialchars($nombre); ?></td></tr>
+                        <tr><th>Precio</th>
+                            <td>$ <?php echo number_format((float)$precio, 0, ',', '.'); ?></td></tr>
+                        <tr><th>Stock</th>
+                            <td><?php echo (int)$stock; ?> unidades</td></tr>
+                        <tr><th>Descripcion</th>
+                            <td><?php echo htmlspecialchars($descripcion); ?></td></tr>
+                    </table>
+                    <a href="formulario.php" class="btn btn-warning text-dark">
+                        Registrar otro
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+
+────────────────────────────────────────────────────────────────────────────────
+
+ACTIVIDAD
+  1. Enviar el formulario completamente vacio
+  2. Observar cuantos errores aparecen y como el formulario los muestra
+  3. Llenar solo algunos campos y enviar de nuevo
+  4. Responder:
+       - ?Para que sirven las sesiones ($_SESSION) en este ejercicio?
+       - ?Por que se guardan los datos del usuario en $_SESSION cuando hay errores?
+       - ?Que diferencia hay entre validar en el navegador (required) y en PHP?
+       - ?Por que se usa trim() antes de validar?
+
+
+════════════════════════════════════════════════════════════════════════════════
+  BASE DE DATOS PARA LOS EJERCICIOS 4, 5 Y 6
+════════════════════════════════════════════════════════════════════════════════
+
+Antes de continuar, ejecutar este SQL en phpMyAdmin:
+
+─── SQL ────────────────────────────────────────────────────────────────────────
+
+CREATE DATABASE IF NOT EXISTS sena_formularios
+  CHARACTER SET utf8
+  COLLATE utf8_general_ci;
+
+USE sena_formularios;
+
+-- Tabla para ejercicios 4 y 5
+CREATE TABLE productos (
+    id          INT          AUTO_INCREMENT PRIMARY KEY,
+    nombre      VARCHAR(100) NOT NULL,
+    precio      DECIMAL(10,2) NOT NULL,
+    stock       INT           NOT NULL DEFAULT 0,
+    descripcion TEXT,
+    created_at  TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabla para ejercicio 6
+CREATE TABLE contactos (
+    id         INT          AUTO_INCREMENT PRIMARY KEY,
+    nombre     VARCHAR(100) NOT NULL,
+    email      VARCHAR(100) NOT NULL,
+    telefono   VARCHAR(20),
+    mensaje    TEXT         NOT NULL,
+    created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+);
+
+────────────────────────────────────────────────────────────────────────────────
+
+Verificar en phpMyAdmin que aparece la base "sena_formularios"
+con las tablas "productos" y "contactos" (ambas vacias por ahora).
+
+
+════════════════════════════════════════════════════════════════════════════════
+  EJERCICIO 4 — GUARDAR EN MYSQL POR PRIMERA VEZ
+  Archivos: ejercicio4/formulario.php  |  ejercicio4/guardar.php
+════════════════════════════════════════════════════════════════════════════════
+
+CONCEPTO NUEVO: PDO — conectarse y guardar en la base de datos
+  PDO (PHP Data Objects) es la forma moderna de conectarse a MySQL.
+
+  Tres pasos para guardar un dato:
+    1. Conectar:   $pdo = new PDO($dsn, $usuario, $clave)
+    2. Preparar:   $stmt = $pdo->prepare("INSERT INTO ... VALUES (?)")
+    3. Ejecutar:   $stmt->execute([$valor])
+
+  ?Por que prepare() y no escribir el SQL directo?
+    Si se escribe: "INSERT INTO productos WHERE nombre = '$nombre'"
+    y el usuario escribe: ' OR '1'='1   como nombre
+    el SQL resultante se convierte en un ataque.
+    prepare() evita completamente este problema.
+
+OBJETIVO
+  El formulario del Ejercicio 3 ahora guarda el producto en la tabla
+  "productos" de la base de datos. Se agrega la conexion PDO.
+
+─── ejercicio4/formulario.php ──────────────────────────────────────────────────
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejercicio 4 — Guardar en MySQL</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Registrar Producto en Base de Datos</h5>
+                </div>
+                <div class="card-body">
+
+                    <?php
+                    session_start();
+                    $errores = $_SESSION['errores'] ?? [];
+                    $datos   = $_SESSION['datos']   ?? [];
+                    unset($_SESSION['errores'], $_SESSION['datos']);
+                    ?>
+
+                    <?php if (!empty($errores)): ?>
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            <?php foreach ($errores as $e): ?>
+                                <li><?php echo htmlspecialchars($e); ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                    <?php endif; ?>
+
+                    <form action="guardar.php" method="POST">
+
+                        <div class="mb-3">
+                            <label class="form-label">Nombre del producto</label>
+                            <input type="text"
+                                   name="nombre"
+                                   class="form-control"
+                                   value="<?php echo htmlspecialchars($datos['nombre'] ?? ''); ?>"
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Precio (COP)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number"
+                                       name="precio"
+                                       class="form-control"
+                                       value="<?php echo htmlspecialchars($datos['precio'] ?? ''); ?>"
+                                       min="0"
+                                       step="100">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Stock</label>
+                            <input type="number"
+                                   name="stock"
+                                   class="form-control"
+                                   value="<?php echo htmlspecialchars($datos['stock'] ?? ''); ?>"
+                                   min="0">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Descripcion</label>
+                            <textarea name="descripcion"
+                                      class="form-control"
+                                      rows="3"><?php
+                                echo htmlspecialchars($datos['descripcion'] ?? '');
+                            ?></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            Guardar en base de datos
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+
+─── ejercicio4/guardar.php ─────────────────────────────────────────────────────
+
+<?php
+session_start();
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: formulario.php');
+    exit;
+}
+
+// ── Capturar datos ───────────────────────────────────────────────────────────
+$nombre      = trim($_POST['nombre']      ?? '');
+$precio      = trim($_POST['precio']      ?? '');
+$stock       = trim($_POST['stock']       ?? '');
+$descripcion = trim($_POST['descripcion'] ?? '');
+
+// ── Validar ──────────────────────────────────────────────────────────────────
+$errores = [];
+
+if (empty($nombre))            $errores[] = 'El nombre es obligatorio.';
+if (!is_numeric($precio) || $precio <= 0)
+                               $errores[] = 'El precio debe ser un numero mayor a cero.';
+if (!is_numeric($stock) || $stock < 0)
+                               $errores[] = 'El stock debe ser un numero valido.';
+if (strlen($descripcion) < 5) $errores[] = 'La descripcion es muy corta.';
+
+if (!empty($errores)) {
+    $_SESSION['errores'] = $errores;
+    $_SESSION['datos']   = compact('nombre', 'precio', 'stock', 'descripcion');
+    header('Location: formulario.php');
+    exit;
+}
+
+// ── Conectar a la base de datos ──────────────────────────────────────────────
+try {
+    $pdo = new PDO(
+        'mysql:host=localhost;dbname=sena_formularios;charset=utf8',
+        'root',   // usuario MySQL
+        '',       // clave (vacia en WAMP por defecto)
+        [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]
+    );
+} catch (PDOException $e) {
+    die('Error de conexion: ' . $e->getMessage());
+}
+
+// ── Guardar en la tabla ──────────────────────────────────────────────────────
+try {
+    // 1. Preparar el INSERT con parametros (los ? son marcadores de posicion)
+    $stmt = $pdo->prepare(
+        "INSERT INTO productos (nombre, precio, stock, descripcion)
+         VALUES (?, ?, ?, ?)"
+    );
+
+    // 2. Ejecutar con los valores reales
+    $stmt->execute([$nombre, (float)$precio, (int)$stock, $descripcion]);
+
+    // 3. Obtener el ID del registro recien creado
+    $nuevoId = $pdo->lastInsertId();
+
+} catch (PDOException $e) {
+    die('Error al guardar: ' . $e->getMessage());
+}
+
+// ── Mostrar confirmacion ─────────────────────────────────────────────────────
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Producto guardado</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <div class="alert alert-success text-center">
+                <h4>Producto guardado correctamente</h4>
+                <p class="mb-0">ID asignado en la base de datos: <strong>#<?php echo $nuevoId; ?></strong></p>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <table class="table">
+                        <tr><th>Nombre</th>
+                            <td><?php echo htmlspecialchars($nombre); ?></td></tr>
+                        <tr><th>Precio</th>
+                            <td>$ <?php echo number_format((float)$precio, 0, ',', '.'); ?></td></tr>
+                        <tr><th>Stock</th>
+                            <td><?php echo (int)$stock; ?></td></tr>
+                        <tr><th>Descripcion</th>
+                            <td><?php echo htmlspecialchars($descripcion); ?></td></tr>
+                    </table>
+
+                    <div class="d-flex gap-2">
+                        <a href="formulario.php" class="btn btn-primary">
+                            Agregar otro
+                        </a>
+                        <a href="http://localhost/phpmyadmin" target="_blank"
+                           class="btn btn-outline-secondary">
+                            Ver en phpMyAdmin
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+
+────────────────────────────────────────────────────────────────────────────────
+
+ACTIVIDAD
+  1. Guardar al menos 3 productos diferentes
+  2. Despues de cada guardado, abrir phpMyAdmin y verificar que el
+     registro aparece en la tabla productos
+  3. Responder:
+       - ?Que es el ID que aparece en la confirmacion?
+       - ?Que hace lastInsertId()?
+       - ?Por que el INSERT usa ? en lugar del valor directamente?
+       - ?Que hace el bloque try/catch?
+
+
+════════════════════════════════════════════════════════════════════════════════
+  EJERCICIO 5 — SWEETALERT2 MUESTRA EL RESULTADO
+  Archivos: ejercicio5/formulario.php  |  ejercicio5/guardar.php
+════════════════════════════════════════════════════════════════════════════════
+
+CONCEPTO NUEVO: comunicar el resultado del servidor a SweetAlert2
+  PHP procesa y guarda → redirige con ?status=ok o ?status=error
+  → La pagina lee el parametro → SweetAlert2 muestra la alerta correcta
+
+  Patron:
+    guardar.php → header('Location: formulario.php?status=ok&msg=...')
+    formulario.php → lee $_GET['status'] y $_GET['msg']
+    JavaScript → if (status === 'ok') Swal.fire({ icon: 'success', ... })
+
+OBJETIVO
+  Formulario de contacto. Cuando el mensaje se guarda correctamente,
+  SweetAlert2 muestra una alerta verde. Si falla, una alerta roja.
+
+─── ejercicio5/formulario.php ──────────────────────────────────────────────────
+
+<?php
+$status  = $_GET['status']  ?? '';
+$mensaje = $_GET['msg']     ?? '';
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejercicio 5 — SweetAlert2 + MySQL</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="fa-solid fa-envelope me-2"></i>
+                        Formulario de Contacto
+                    </h5>
+                </div>
+                <div class="card-body">
+
+                    <form id="formContacto" action="guardar.php" method="POST">
+
+                        <div class="mb-3">
+                            <label class="form-label">Nombre</label>
+                            <input type="text"
+                                   name="nombre"
+                                   class="form-control"
+                                   placeholder="Tu nombre completo"
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email"
+                                   name="email"
+                                   class="form-control"
+                                   placeholder="tu@email.com"
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Telefono <span class="text-muted">(opcional)</span></label>
+                            <input type="tel"
+                                   name="telefono"
+                                   class="form-control"
+                                   placeholder="Ej: 3001234567">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Mensaje</label>
+                            <textarea name="mensaje"
+                                      class="form-control"
+                                      rows="4"
+                                      placeholder="Escribe tu mensaje aqui..."
+                                      required></textarea>
+                        </div>
+
+                        <button type="button"
+                                class="btn btn-dark w-100"
+                                onclick="confirmarEnvio()">
+                            <i class="fa-solid fa-paper-plane me-2"></i>
+                            Enviar mensaje
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // ── Leer el resultado que envio guardar.php via URL ──────────────────────
+    const status  = "<?php echo $status; ?>";
+    const mensaje = <?php echo json_encode($mensaje); ?>;
+
+    if (status === 'ok') {
+        Swal.fire({
+            icon:              'success',
+            title:             'Mensaje enviado',
+            text:              mensaje,
+            timer:             3000,
+            timerProgressBar:  true,
+            showConfirmButton: false,
+        });
+    } else if (status === 'error') {
+        Swal.fire({
+            icon:  'error',
+            title: 'No se pudo enviar',
+            text:  mensaje,
+        });
+    }
+
+    // ── Confirmacion antes de enviar ─────────────────────────────────────────
+    function confirmarEnvio() {
+        const nombre  = document.querySelector('[name=nombre]').value.trim();
+        const email   = document.querySelector('[name=email]').value.trim();
+        const msg     = document.querySelector('[name=mensaje]').value.trim();
+
+        if (!nombre || !email || !msg) {
+            Swal.fire({
+                icon:  'warning',
+                title: 'Campos requeridos',
+                text:  'Completa nombre, email y mensaje.',
+            });
+            return;
+        }
+
+        Swal.fire({
+            icon:              'question',
+            title:             'Confirmar envio',
+            html:              `Tu mensaje sera enviado como <strong>${nombre}</strong>`,
+            showCancelButton:  true,
+            confirmButtonText: 'Si, enviar',
+            cancelButtonText:  'Revisar',
+            confirmButtonColor:'#212529',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('formContacto').submit();
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
+
+─── ejercicio5/guardar.php ─────────────────────────────────────────────────────
+
+<?php
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: formulario.php');
+    exit;
+}
+
+$nombre   = trim($_POST['nombre']   ?? '');
+$email    = trim($_POST['email']    ?? '');
+$telefono = trim($_POST['telefono'] ?? '');
+$mensaje  = trim($_POST['mensaje']  ?? '');
+
+// Validacion
+if (empty($nombre) || empty($email) || empty($mensaje)) {
+    $msg = urlencode('Faltan campos obligatorios.');
+    header("Location: formulario.php?status=error&msg=$msg");
+    exit;
+}
+
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $msg = urlencode('El formato del email no es valido.');
+    header("Location: formulario.php?status=error&msg=$msg");
+    exit;
+}
+
+// Conexion
+try {
+    $pdo = new PDO(
+        'mysql:host=localhost;dbname=sena_formularios;charset=utf8',
+        'root', '',
+        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+    );
+} catch (PDOException $e) {
+    $msg = urlencode('Error de conexion a la base de datos.');
+    header("Location: formulario.php?status=error&msg=$msg");
+    exit;
+}
+
+// Guardar
+try {
+    $stmt = $pdo->prepare(
+        "INSERT INTO contactos (nombre, email, telefono, mensaje)
+         VALUES (?, ?, ?, ?)"
+    );
+    $stmt->execute([$nombre, $email, $telefono, $mensaje]);
+
+    $msg = urlencode("Gracias $nombre, tu mensaje fue recibido correctamente.");
+    header("Location: formulario.php?status=ok&msg=$msg");
+
+} catch (PDOException $e) {
+    $msg = urlencode('No se pudo guardar el mensaje. Intenta de nuevo.');
+    header("Location: formulario.php?status=error&msg=$msg");
+}
+
+exit;
+
+────────────────────────────────────────────────────────────────────────────────
+
+ACTIVIDAD
+  1. Enviar un mensaje valido → observar la alerta verde
+  2. Desactivar PHP temporalmente y enviar de nuevo (solo para ver que pasa)
+  3. Verificar en phpMyAdmin que el contacto quedo guardado
+  4. Responder:
+       - ?Por que el boton usa type="button" y no type="submit"?
+       - ?Como viaja el mensaje de PHP a la alerta de JavaScript?
+       - ?Que hace urlencode() y por que es necesario?
+       - ?Por que filter_var con FILTER_VALIDATE_EMAIL es mejor que revisar
+         manualmente si el email tiene @ y punto?
+
+
+════════════════════════════════════════════════════════════════════════════════
+  EJERCICIO 6 — CRUD COMPLETO
+  Agenda Personal: Contactos con Bootstrap + SweetAlert2 + MySQL
+════════════════════════════════════════════════════════════════════════════════
+
+CONCEPTO NUEVO: CRUD completo en un solo proyecto
+  Hasta ahora solo se hizo el CREATE (guardar).
+  Este ejercicio agrega READ, UPDATE y DELETE sobre la misma tabla.
+
+  CRUD = Create / Read / Update / Delete
+       = INSERT  / SELECT / UPDATE / DELETE  (en SQL)
+
+  Archivos:
+    conexion.php   → Conexion PDO reutilizable (require en cada archivo)
+    index.php      → READ: lista de contactos
+    crear.php      → Formulario de creacion (CREATE - GET)
+    guardar.php    → Procesar creacion (CREATE - POST)
+    editar.php     → Formulario de edicion precargado (UPDATE - GET)
+    actualizar.php → Procesar edicion (UPDATE - POST)
+    eliminar.php   → Eliminar y redirigir (DELETE)
+
+─── ejercicio6/conexion.php ────────────────────────────────────────────────────
+
+<?php
+// Archivo de conexion reutilizable
+// En cada archivo que necesite la BD se escribe: require 'conexion.php';
+// y ya se tiene la variable $pdo disponible.
+
+try {
+    $pdo = new PDO(
+        'mysql:host=localhost;dbname=sena_formularios;charset=utf8',
+        'root',
+        '',
+        [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]
+    );
+} catch (PDOException $e) {
+    die('<div class="container mt-4"><div class="alert alert-danger">
+         Error de conexion: ' . $e->getMessage() . '</div></div>');
+}
+
+────────────────────────────────────────────────────────────────────────────────
+
+─── ejercicio6/index.php ───────────────────────────────────────────────────────
+
+<?php
+require 'conexion.php';
+
+$status  = $_GET['status']  ?? '';
+$mensaje = $_GET['msg']     ?? '';
+
+// READ: obtener todos los contactos ordenados del mas reciente
+$contactos = $pdo->query(
+    "SELECT * FROM contactos ORDER BY id DESC"
+)->fetchAll();
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda de Contactos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-light">
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">
+            <i class="fa-solid fa-address-book me-2 text-primary"></i>
+            Agenda de Contactos
+        </h4>
+        <a href="crear.php" class="btn btn-primary">
+            <i class="fa-solid fa-user-plus me-1"></i> Nuevo contacto
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-primary">
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Telefono</th>
+                        <th>Mensaje</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($contactos)): ?>
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                <i class="fa-solid fa-circle-info me-1"></i>
+                                No hay contactos registrados.
+                            </td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($contactos as $c): ?>
+                        <tr>
+                            <td><?php echo $c['id']; ?></td>
+                            <td><?php echo htmlspecialchars($c['nombre']); ?></td>
+                            <td><?php echo htmlspecialchars($c['email']); ?></td>
+                            <td>
+                                <?php echo $c['telefono']
+                                    ? htmlspecialchars($c['telefono'])
+                                    : '<span class="text-muted">—</span>'; ?>
+                            </td>
+                            <td>
+                                <span class="text-truncate d-inline-block"
+                                      style="max-width:180px"
+                                      title="<?php echo htmlspecialchars($c['mensaje']); ?>">
+                                    <?php echo htmlspecialchars($c['mensaje']); ?>
+                                </span>
+                            </td>
+                            <td>
+                                <a href="editar.php?id=<?php echo $c['id']; ?>"
+                                   class="btn btn-warning btn-sm">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a>
+                                <button class="btn btn-danger btn-sm"
+                                    onclick="confirmarEliminar(
+                                        <?php echo $c['id']; ?>,
+                                        '<?php echo addslashes($c['nombre']); ?>'
+                                    )">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const status  = "<?php echo $status; ?>";
+    const mensaje = <?php echo json_encode($mensaje); ?>;
+
+    const alertas = {
+        creado:    { icon: 'success', title: 'Contacto creado'    },
+        editado:   { icon: 'success', title: 'Contacto editado'   },
+        eliminado: { icon: 'info',    title: 'Contacto eliminado' },
+        error:     { icon: 'error',   title: 'Error'              },
+    };
+
+    if (status && alertas[status]) {
+        Swal.fire({
+            icon:              alertas[status].icon,
+            title:             alertas[status].title,
+            text:              mensaje,
+            timer:             status === 'error' ? undefined : 2500,
+            timerProgressBar:  status !== 'error',
+            showConfirmButton: status === 'error',
+        });
+    }
+
+    function confirmarEliminar(id, nombre) {
+        Swal.fire({
+            icon:              'warning',
+            title:             'Eliminar contacto',
+            html:              `Seguro que deseas eliminar a <strong>${nombre}</strong>?`,
+            showCancelButton:  true,
+            confirmButtonText: 'Si, eliminar',
+            cancelButtonText:  'Cancelar',
+            confirmButtonColor:'#dc3545',
+            cancelButtonColor: '#6c757d',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `eliminar.php?id=${id}`;
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
+
+────────────────────────────────────────────────────────────────────────────────
+
+─── ejercicio6/crear.php ───────────────────────────────────────────────────────
+
+<?php
+session_start();
+$errores = $_SESSION['errores'] ?? [];
+$datos   = $_SESSION['datos']   ?? [];
+unset($_SESSION['errores'], $_SESSION['datos']);
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Contacto</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-light">
+
+<div class="container mt-4" style="max-width:560px">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="fa-solid fa-user-plus me-2"></i> Nuevo contacto
+            </h5>
+        </div>
+        <div class="card-body">
+
+            <?php if (!empty($errores)): ?>
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    <?php foreach ($errores as $e): ?>
+                        <li><?php echo htmlspecialchars($e); ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+            <?php endif; ?>
+
+            <form id="formCrear" action="guardar.php" method="POST">
+
+                <div class="mb-3">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" name="nombre" class="form-control"
+                           value="<?php echo htmlspecialchars($datos['nombre'] ?? ''); ?>"
+                           required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control"
+                           value="<?php echo htmlspecialchars($datos['email'] ?? ''); ?>"
+                           required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        Telefono <span class="text-muted">(opcional)</span>
+                    </label>
+                    <input type="tel" name="telefono" class="form-control"
+                           value="<?php echo htmlspecialchars($datos['telefono'] ?? ''); ?>">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Mensaje</label>
+                    <textarea name="mensaje" class="form-control" rows="3"
+                              required><?php
+                        echo htmlspecialchars($datos['mensaje'] ?? '');
+                    ?></textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary flex-grow-1"
+                            onclick="confirmarGuardar()">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Guardar
+                    </button>
+                    <a href="index.php" class="btn btn-secondary">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmarGuardar() {
+        const nombre  = document.querySelector('[name=nombre]').value.trim();
+        const email   = document.querySelector('[name=email]').value.trim();
+        const mensaje = document.querySelector('[name=mensaje]').value.trim();
+
+        if (!nombre || !email || !mensaje) {
+            Swal.fire({ icon: 'warning', title: 'Campos requeridos',
+                        text: 'Nombre, email y mensaje son obligatorios.' });
+            return;
+        }
+
+        Swal.fire({
+            icon:              'question',
+            title:             'Confirmar registro',
+            html:              `Se guardara el contacto: <strong>${nombre}</strong>`,
+            showCancelButton:  true,
+            confirmButtonText: 'Si, guardar',
+            cancelButtonText:  'Revisar',
+            confirmButtonColor:'#0d6efd',
+        }).then((r) => {
+            if (r.isConfirmed) document.getElementById('formCrear').submit();
+        });
+    }
+</script>
+
+</body>
+</html>
+
+────────────────────────────────────────────────────────────────────────────────
+
+─── ejercicio6/guardar.php ─────────────────────────────────────────────────────
+
+<?php
+session_start();
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: index.php');
+    exit;
+}
+
+$nombre   = trim($_POST['nombre']   ?? '');
+$email    = trim($_POST['email']    ?? '');
+$telefono = trim($_POST['telefono'] ?? '');
+$mensaje  = trim($_POST['mensaje']  ?? '');
+
+$errores = [];
+if (empty($nombre))                          $errores[] = 'El nombre es obligatorio.';
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errores[] = 'El email no es valido.';
+if (empty($mensaje))                         $errores[] = 'El mensaje es obligatorio.';
+
+if (!empty($errores)) {
+    $_SESSION['errores'] = $errores;
+    $_SESSION['datos']   = compact('nombre', 'email', 'telefono', 'mensaje');
+    header('Location: crear.php');
+    exit;
+}
+
+require 'conexion.php';
+
+$stmt = $pdo->prepare(
+    "INSERT INTO contactos (nombre, email, telefono, mensaje) VALUES (?, ?, ?, ?)"
+);
+$ok = $stmt->execute([$nombre, $email, $telefono, $mensaje]);
+
+if ($ok) {
+    $msg = urlencode("El contacto \"$nombre\" fue guardado.");
+    header("Location: index.php?status=creado&msg=$msg");
+} else {
+    $msg = urlencode('No se pudo guardar el contacto.');
+    header("Location: index.php?status=error&msg=$msg");
+}
+exit;
+
+────────────────────────────────────────────────────────────────────────────────
+
+─── ejercicio6/editar.php ──────────────────────────────────────────────────────
+
+<?php
+require 'conexion.php';
+
+$id = intval($_GET['id'] ?? 0);
+
+if ($id <= 0) {
+    header('Location: index.php?status=error&msg=' . urlencode('ID no valido.'));
+    exit;
+}
+
+$stmt = $pdo->prepare("SELECT * FROM contactos WHERE id = ?");
+$stmt->execute([$id]);
+$contacto = $stmt->fetch();
+
+if (!$contacto) {
+    header('Location: index.php?status=error&msg=' . urlencode('Contacto no encontrado.'));
+    exit;
+}
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Contacto</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-light">
+
+<div class="container mt-4" style="max-width:560px">
+    <div class="card shadow-sm">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">
+                <i class="fa-solid fa-pen-to-square me-2"></i>
+                Editar contacto
+            </h5>
+        </div>
+        <div class="card-body">
+
+            <form id="formEditar" action="actualizar.php" method="POST">
+
+                <input type="hidden" name="id"
+                       value="<?php echo $contacto['id']; ?>">
+
+                <div class="mb-3">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" name="nombre" class="form-control"
+                           value="<?php echo htmlspecialchars($contacto['nombre']); ?>"
+                           required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control"
+                           value="<?php echo htmlspecialchars($contacto['email']); ?>"
+                           required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Telefono</label>
+                    <input type="tel" name="telefono" class="form-control"
+                           value="<?php echo htmlspecialchars($contacto['telefono']); ?>">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Mensaje</label>
+                    <textarea name="mensaje" class="form-control"
+                              rows="3" required><?php
+                        echo htmlspecialchars($contacto['mensaje']);
+                    ?></textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-warning flex-grow-1 text-dark"
+                            onclick="confirmarEdicion()">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Actualizar
+                    </button>
+                    <a href="index.php" class="btn btn-secondary">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmarEdicion() {
+        const nombre = document.querySelector('[name=nombre]').value.trim();
+        if (!nombre) {
+            Swal.fire({ icon: 'warning', title: 'Campo requerido',
+                        text: 'El nombre no puede estar vacio.' });
+            return;
+        }
+        Swal.fire({
+            icon:              'question',
+            title:             'Guardar cambios',
+            html:              `Se actualizara: <strong>${nombre}</strong>`,
+            showCancelButton:  true,
+            confirmButtonText: 'Si, actualizar',
+            cancelButtonText:  'Cancelar',
+            confirmButtonColor:'#ffc107',
+        }).then((r) => {
+            if (r.isConfirmed) document.getElementById('formEditar').submit();
+        });
+    }
+</script>
+
+</body>
+</html>
+
+────────────────────────────────────────────────────────────────────────────────
+
+─── ejercicio6/actualizar.php ──────────────────────────────────────────────────
+
+<?php
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: index.php');
+    exit;
+}
+
+$id       = intval($_POST['id']       ?? 0);
+$nombre   = trim($_POST['nombre']     ?? '');
+$email    = trim($_POST['email']      ?? '');
+$telefono = trim($_POST['telefono']   ?? '');
+$mensaje  = trim($_POST['mensaje']    ?? '');
+
+if ($id <= 0 || empty($nombre) || empty($email) || empty($mensaje)) {
+    $msg = urlencode('Datos incompletos.');
+    header("Location: editar.php?id=$id&status=error&msg=$msg");
+    exit;
+}
+
+require 'conexion.php';
+
+$stmt = $pdo->prepare(
+    "UPDATE contactos
+     SET nombre=?, email=?, telefono=?, mensaje=?
+     WHERE id=?"
+);
+$ok = $stmt->execute([$nombre, $email, $telefono, $mensaje, $id]);
+
+if ($ok) {
+    $msg = urlencode("Los datos de \"$nombre\" fueron actualizados.");
+    header("Location: index.php?status=editado&msg=$msg");
+} else {
+    $msg = urlencode('No se pudo actualizar el contacto.');
+    header("Location: index.php?status=error&msg=$msg");
+}
+exit;
+
+────────────────────────────────────────────────────────────────────────────────
+
+─── ejercicio6/eliminar.php ────────────────────────────────────────────────────
+
+<?php
+$id = intval($_GET['id'] ?? 0);
+
+if ($id <= 0) {
+    header('Location: index.php?status=error&msg=' . urlencode('ID no valido.'));
+    exit;
+}
+
+require 'conexion.php';
+
+// Obtener el nombre antes de borrar para el mensaje
+$stmt = $pdo->prepare("SELECT nombre FROM contactos WHERE id = ?");
+$stmt->execute([$id]);
+$contacto = $stmt->fetch();
+
+if (!$contacto) {
+    header('Location: index.php?status=error&msg=' . urlencode('Contacto no encontrado.'));
+    exit;
+}
+
+$stmt = $pdo->prepare("DELETE FROM contactos WHERE id = ?");
+$ok   = $stmt->execute([$id]);
+
+if ($ok) {
+    $msg = urlencode("\"$contacto[nombre]\" fue eliminado de la agenda.");
+    header("Location: index.php?status=eliminado&msg=$msg");
+} else {
+    $msg = urlencode('No se pudo eliminar el contacto.');
+    header("Location: index.php?status=error&msg=$msg");
+}
+exit;
+
+────────────────────────────────────────────────────────────────────────────────
+
+ACTIVIDAD FINAL
+  Completar el CRUD y verificar cada operacion:
+    1. Agregar 5 contactos con datos reales o ficticios
+    2. Editar al menos 2 de ellos
+    3. Eliminar 1 y confirmar que la alerta de confirmacion aparece
+    4. Intentar acceder directamente a eliminar.php sin id en la URL
+    5. Responder:
+         - ?Que diferencia tiene la estructura del Ejercicio 6 respecto
+           a la del manual MVC anterior?
+         - ?En que momento seria conveniente migrar este ejercicio a MVC?
+         - ?Que funcion cumple conexion.php en este ejercicio?
+
+
+════════════════════════════════════════════════════════════════════════════════
+  TABLA COMPARATIVA: LO QUE SE APRENDIO EN CADA EJERCICIO
+════════════════════════════════════════════════════════════════════════════════
+
+  EJERCICIO   CONCEPTO NUEVO                 ARCHIVO NUEVO
+  ──────────  ─────────────────────────────  ──────────────────────────────
+  1           method GET, datos en URL       formulario.html
+  2           method POST, $_POST, print_r   formulario.php + recibir.php
+  3           Validacion PHP, $_SESSION      recibir.php ampliado
+  4           PDO, prepare, execute, INSERT  guardar.php con BD
+  5           SweetAlert2 + URL + PHP        patron status/msg en URL
+  6           CRUD completo + conexion.php   7 archivos coordinados
+  ──────────  ─────────────────────────────  ──────────────────────────────
+
+
+════════════════════════════════════════════════════════════════════════════════
+  ERRORES FRECUENTES EN ESTA SERIE
+════════════════════════════════════════════════════════════════════════════════
+
+  ERROR: La pagina redirige en bucle (formulario → recibir → formulario)
+  CAUSA: Se accede a recibir.php directamente sin enviar el formulario
+  SOLUCION: La verificacion de REQUEST_METHOD al inicio evita esto
+
+  ERROR: El mensaje de SweetAlert2 aparece con caracteres raros
+  CAUSA: Se uso echo $mensaje directamente en el JS
+  SOLUCION: Usar json_encode: const mensaje = <?php echo json_encode($msg); ?>;
+
+  ERROR: Los datos del formulario se pierden cuando hay error de validacion
+  CAUSA: No se guardaron en $_SESSION antes de redirigir
+  SOLUCION: Guardar en $_SESSION['datos'] antes del header('Location...')
+            y leer con $datos = $_SESSION['datos'] ?? [] en el formulario
+
+  ERROR: SQLSTATE[HY000] [1049] Unknown database
+  CAUSA: La base de datos no existe o el nombre esta mal escrito
+  SOLUCION: Verificar en phpMyAdmin que "sena_formularios" existe
+
+  ERROR: La alerta de confirmacion aparece pero no envia el formulario
+  CAUSA: El boton tiene type="submit" — el form se envia antes de Swal
+  SOLUCION: Cambiar a type="button" y llamar form.submit() dentro del .then()
+
+
+════════════════════════════════════════════════════════════════════════════════
+  Instructor: James — SENA, Medellin
+  Serie: Formularios PHP progresivos | Bootstrap 5 + SweetAlert2 + PDO
+════════════════════════════════════════════════════════════════════════════════

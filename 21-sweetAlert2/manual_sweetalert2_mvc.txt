@@ -1,0 +1,1480 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║        SWEETALERT2 CON PHP — ARQUITECTURA MVC                              ║
+║        Guia de ejercicios paso a paso                                      ║
+║                                                                            ║
+║        Programa : Analisis y Desarrollo de Sistemas de Informacion         ║
+║        Instructor: James                        SENA — Medellin            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+¿QUE VAMOS A CONSTRUIR?
+────────────────────────
+Un sistema web de gestion de estudiantes con las siguientes caracteristicas:
+
+  - Arquitectura MVC (Model - View - Controller)
+  - Operaciones CRUD completas (Crear, Leer, Actualizar, Eliminar)
+  - Alertas modernas con SweetAlert2
+  - Iconos con Font Awesome
+  - CSS en archivo externo (buena practica)
+  - Conexion a MySQL con PDO y consultas preparadas
+
+Al finalizar tendra un proyecto que es la base conceptual exacta de
+frameworks como Laravel. Todo lo que aprenda aqui lo reconocera alli.
+
+
+¿QUE ES MVC?
+─────────────
+MVC divide el codigo en tres capas con responsabilidades separadas:
+
+  CAPA         ARCHIVO(S)                    HACE...
+  ──────────── ─────────────────────────     ─────────────────────────────────
+  Model        models/EstudianteModel.php    Consultas SQL. Solo eso.
+  View         views/estudiantes/*.php       HTML que ve el usuario. Solo eso.
+  Controller   controllers/Estudiante...php  Coordina Model y View. Decide.
+  ──────────── ─────────────────────────     ─────────────────────────────────
+
+  Regla de oro:
+    - El Model NUNCA genera HTML
+    - La View NUNCA ejecuta SQL
+    - El Controller NUNCA mezcla SQL con HTML
+
+  Flujo de una peticion:
+    Navegador → index.php (Router) → Controller → Model → Controller → View
+
+
+HERRAMIENTAS NECESARIAS
+────────────────────────
+  - WAMP / XAMPP corriendo en el equipo
+  - Navegador web
+  - Editor de codigo (VS Code recomendado)
+  - phpMyAdmin para la base de datos
+
+
+════════════════════════════════════════════════════════════════════════════════
+  PASO 1 — CREAR LA BASE DE DATOS
+════════════════════════════════════════════════════════════════════════════════
+
+  1. Abrir phpMyAdmin en el navegador: http://localhost/phpmyadmin
+  2. Ir a la pestana "SQL"
+  3. Copiar y ejecutar el siguiente codigo:
+
+─── SQL ────────────────────────────────────────────────────────────────────────
+
+CREATE DATABASE IF NOT EXISTS sena_mvc
+  CHARACTER SET utf8
+  COLLATE utf8_general_ci;
+
+USE sena_mvc;
+
+CREATE TABLE estudiantes (
+  id         INT          AUTO_INCREMENT PRIMARY KEY,
+  nombre     VARCHAR(100) NOT NULL,
+  email      VARCHAR(100) NOT NULL UNIQUE,
+  ficha      VARCHAR(20),
+  created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO estudiantes (nombre, email, ficha) VALUES
+  ('Carlos Perez',  'carlos@sena.edu.co', '2758634'),
+  ('Laura Gomez',   'laura@sena.edu.co',  '2758634'),
+  ('Andres Rios',   'andres@sena.edu.co', '2812045');
+
+────────────────────────────────────────────────────────────────────────────────
+
+  Verificar: en el panel izquierdo debe aparecer "sena_mvc" con la tabla
+  "estudiantes" y tres registros.
+
+
+════════════════════════════════════════════════════════════════════════════════
+  PASO 2 — CREAR LA ESTRUCTURA DE CARPETAS
+════════════════════════════════════════════════════════════════════════════════
+
+  Dentro de C:\wamp64\www\ crear la carpeta "mvc-sweetalert" con esta estructura:
+
+  mvc-sweetalert/
+  │
+  ├── assets/
+  │   └── css/
+  │       └── app.css                    (estilos globales del proyecto)
+  │
+  ├── config/
+  │   └── Database.php                   (conexion a la base de datos)
+  │
+  ├── models/
+  │   └── EstudianteModel.php            (consultas SQL)
+  │
+  ├── controllers/
+  │   └── EstudianteController.php       (logica y coordinacion)
+  │
+  ├── views/
+  │   └── estudiantes/
+  │       ├── index.php                  (lista de estudiantes)
+  │       ├── crear.php                  (formulario de creacion)
+  │       └── editar.php                 (formulario de edicion)
+  │
+  └── index.php                          (router: punto de entrada unico)
+
+  Crear todas las carpetas antes de empezar a escribir los archivos.
+  Los archivos se iran creando en los pasos siguientes.
+
+
+════════════════════════════════════════════════════════════════════════════════
+  PASO 3 — CSS EXTERNO
+  Archivo: assets/css/app.css
+════════════════════════════════════════════════════════════════════════════════
+
+Por que el CSS va en un archivo separado?
+
+  - Un solo archivo controla el diseno de todas las paginas
+  - Si se quiere cambiar un color, se cambia en un solo lugar
+  - El HTML queda limpio y facil de leer
+  - Es el estandar en cualquier proyecto profesional
+
+Crear el archivo assets/css/app.css con el siguiente contenido:
+
+─── assets/css/app.css ─────────────────────────────────────────────────────────
+
+/* ============================================================
+   app.css — Proyecto MVC SweetAlert2
+   ============================================================ */
+
+/* ── Reset y base ─────────────────────────────────────────── */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 15px;
+    background-color: #f0f2f5;
+    color: #333;
+    padding: 32px 20px;
+}
+
+/* ── Contenedores ─────────────────────────────────────────── */
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.container--narrow {
+    max-width: 520px;
+    margin: 0 auto;
+}
+
+/* ── Card ─────────────────────────────────────────────────── */
+.card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 28px 32px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Encabezado de pagina ─────────────────────────────────── */
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f0f2f5;
+}
+
+.page-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #39a900;
+}
+
+.page-header h2.header--warning {
+    color: #e6940a;
+}
+
+/* ── Tabla ────────────────────────────────────────────────── */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table thead th {
+    background-color: #39a900;
+    color: #fff;
+    padding: 12px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.table tbody td {
+    padding: 11px 14px;
+    border-bottom: 1px solid #eef0f3;
+    vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table tbody tr:hover td {
+    background-color: #f6fcf0;
+}
+
+.table .empty-row {
+    text-align: center;
+    color: #aaa;
+    padding: 28px;
+    font-style: italic;
+}
+
+/* ── Botones ──────────────────────────────────────────────── */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 18px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.15s ease, transform 0.1s ease;
+    color: #fff;
+}
+
+.btn:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn--primary   { background-color: #39a900; }
+.btn--warning   { background-color: #e6940a; }
+.btn--danger    { background-color: #d9534f; }
+.btn--secondary { background-color: #6c757d; }
+
+.btn--sm {
+    padding: 5px 12px;
+    font-size: 13px;
+}
+
+/* ── Formularios ──────────────────────────────────────────── */
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.form-group label .required {
+    color: #d9534f;
+    margin-left: 2px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    font-size: 15px;
+    color: #333;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background-color: #fff;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #39a900;
+    box-shadow: 0 0 0 3px rgba(57, 169, 0, 0.15);
+}
+
+.form-control--warning:focus {
+    border-color: #e6940a;
+    box-shadow: 0 0 0 3px rgba(230, 148, 10, 0.15);
+}
+
+.form-control::placeholder {
+    color: #aab;
+    font-size: 14px;
+}
+
+/* ── Acciones del formulario ──────────────────────────────── */
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 26px;
+    padding-top: 20px;
+    border-top: 1px solid #f0f2f5;
+}
+
+/* ── Acciones en tabla ────────────────────────────────────── */
+.table-actions {
+    display: flex;
+    gap: 6px;
+}
+
+/* ── Badge ficha ──────────────────────────────────────────── */
+.badge {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    background-color: #e8f5e1;
+    color: #39a900;
+}
+
+────────────────────────────────────────────────────────────────────────────────
+
+  Preguntas de reflexion para el estudiante:
+    - ?Por que usamos clases como .btn--primary en lugar de .boton-verde?
+    - ?Que ventaja tiene .container y .container--narrow sobre tener
+      dos clases completamente distintas?
+    - ?Que significa box-sizing: border-box y por que va en el reset?
+
+
+════════════════════════════════════════════════════════════════════════════════
+  PASO 4 — CONEXION A LA BASE DE DATOS
+  Archivo: config/Database.php
+════════════════════════════════════════════════════════════════════════════════
+
+Conceptos nuevos en este archivo:
+
+  PDO (PHP Data Objects)
+    Interfaz de PHP para conectarse a bases de datos. A diferencia de mysqli,
+    PDO funciona con MySQL, PostgreSQL, SQLite y otros motores. Es el estandar
+    que usa Laravel internamente.
+
+  Patron Singleton
+    Garantiza que en toda la ejecucion del programa exista UNA sola conexion
+    a la base de datos. Si 10 archivos llaman a Database::getConnection(),
+    todos obtienen la misma conexion, no se abren 10 conexiones distintas.
+
+  Metodo estatico
+    Se llama con :: en lugar de ->. No requiere crear un objeto primero.
+    Ejemplo: Database::getConnection() en lugar de $db = new Database(); $db->getConnection();
+
+─── config/Database.php ────────────────────────────────────────────────────────
+
+<?php
+
+class Database
+{
+    // Datos de conexion
+    private static string $host    = 'localhost';
+    private static string $db      = 'sena_mvc';
+    private static string $user    = 'root';
+    private static string $pass    = '';
+    private static string $charset = 'utf8';
+
+    // Guarda la unica instancia de conexion (Singleton)
+    private static ?PDO $connection = null;
+
+    // Constructor privado: impide hacer "new Database()" desde afuera
+    private function __construct() {}
+
+    // Unico punto de acceso a la conexion
+    public static function getConnection(): PDO
+    {
+        if (self::$connection === null) {
+
+            $dsn = "mysql:host=" . self::$host
+                 . ";dbname="   . self::$db
+                 . ";charset="  . self::$charset;
+
+            $opciones = [
+                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ];
+
+            self::$connection = new PDO($dsn, self::$user, self::$pass, $opciones);
+        }
+
+        return self::$connection;
+    }
+}
+
+────────────────────────────────────────────────────────────────────────────────
+
+  Como verificar que funciona:
+    Crear un archivo temporal test.php en la raiz del proyecto:
+
+    <?php
+    require 'config/Database.php';
+    $pdo = Database::getConnection();
+    echo 'Conexion exitosa';
+    ?>
+
+    Acceder desde el navegador: http://localhost/mvc-sweetalert/test.php
+    Si aparece "Conexion exitosa", el Paso 4 esta completo.
+    Eliminar test.php antes de continuar.
+
+  Preguntas de reflexion:
+    - ?Por que el constructor es privado?
+    - ?Que pasaria si self::$connection no fuera estatica?
+    - ?Que significa PDO::ERRMODE_EXCEPTION?
+
+
+════════════════════════════════════════════════════════════════════════════════
+  PASO 5 — MODEL
+  Archivo: models/EstudianteModel.php
+════════════════════════════════════════════════════════════════════════════════
+
+El Model es la unica capa que habla con la base de datos.
+Cada metodo corresponde a una operacion: obtener todos, obtener uno,
+crear, actualizar o eliminar.
+
+Concepto clave — Consultas preparadas (Prepared Statements):
+  En lugar de construir el SQL concatenando variables:
+    MALO:  "SELECT * FROM estudiantes WHERE id = $id"   <- SQL Injection
+    BIEN:  "SELECT * FROM estudiantes WHERE id = ?"     <- Seguro
+
+  El signo ? es un marcador que PDO reemplaza de forma segura.
+  Tambien se pueden usar parametros con nombre: :id, :nombre, :email
+
+─── models/EstudianteModel.php ─────────────────────────────────────────────────
+
+<?php
+
+require_once __DIR__ . '/../config/Database.php';
+
+class EstudianteModel
+{
+    private PDO $db;
+
+    public function __construct()
+    {
+        $this->db = Database::getConnection();
+    }
+
+    // ── Obtener todos los estudiantes ────────────────────────────────────────
+    public function obtenerTodos(): array
+    {
+        $stmt = $this->db->query("SELECT * FROM estudiantes ORDER BY id DESC");
+        return $stmt->fetchAll();
+    }
+
+    // ── Obtener un estudiante por su ID ──────────────────────────────────────
+    public function obtenerPorId(int $id): array|false
+    {
+        $stmt = $this->db->prepare("SELECT * FROM estudiantes WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch();
+    }
+
+    // ── Insertar nuevo estudiante ────────────────────────────────────────────
+    public function crear(array $datos): bool
+    {
+        $stmt = $this->db->prepare(
+            "INSERT INTO estudiantes (nombre, email, ficha)
+             VALUES (:nombre, :email, :ficha)"
+        );
+        return $stmt->execute([
+            ':nombre' => $datos['nombre'],
+            ':email'  => $datos['email'],
+            ':ficha'  => $datos['ficha'],
+        ]);
+    }
+
+    // ── Actualizar estudiante existente ──────────────────────────────────────
+    public function actualizar(int $id, array $datos): bool
+    {
+        $stmt = $this->db->prepare(
+            "UPDATE estudiantes
+             SET nombre = :nombre,
+                 email  = :email,
+                 ficha  = :ficha
+             WHERE id = :id"
+        );
+        return $stmt->execute([
+            ':nombre' => $datos['nombre'],
+            ':email'  => $datos['email'],
+            ':ficha'  => $datos['ficha'],
+            ':id'     => $id,
+        ]);
+    }
+
+    // ── Eliminar estudiante ──────────────────────────────────────────────────
+    public function eliminar(int $id): bool
+    {
+        $stmt = $this->db->prepare("DELETE FROM estudiantes WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
+}
+
+────────────────────────────────────────────────────────────────────────────────
+
+  Revisar el Model y responder:
+    - ?Cuantas lineas de HTML tiene este archivo? (debe ser cero)
+    - ?Que retorna obtenerPorId() si el ID no existe en la tabla?
+    - ?Por que usar :nombre en lugar de solo ? en el INSERT?
+    - ?Que hace fetchAll() y en que se diferencia de fetch()?
+
+
+════════════════════════════════════════════════════════════════════════════════
+  PASO 6 — CONTROLLER
+  Archivo: controllers/EstudianteController.php
+════════════════════════════════════════════════════════════════════════════════
+
+El Controller recibe la accion del Router, valida los datos de entrada,
+llama al Model para operar con la BD, y decide que View mostrar.
+
+Metodos publicos (acciones disponibles):
+  index()      - Mostrar lista de estudiantes
+  crear()      - Mostrar formulario de creacion (GET)
+  guardar()    - Procesar formulario de creacion (POST)
+  editar()     - Mostrar formulario de edicion precargado (GET)
+  actualizar() - Procesar formulario de edicion (POST)
+  eliminar()   - Eliminar y redirigir
+
+Metodos privados (auxiliares internos):
+  cargarVista() - Incluye el archivo de View con sus variables
+  redirigir()   - Centraliza todas las redirecciones
+
+─── controllers/EstudianteController.php ───────────────────────────────────────
+
+<?php
+
+require_once __DIR__ . '/../models/EstudianteModel.php';
+
+class EstudianteController
+{
+    private EstudianteModel $model;
+
+    public function __construct()
+    {
+        $this->model = new EstudianteModel();
+    }
+
+    // ── Listar estudiantes ───────────────────────────────────────────────────
+    public function index(): void
+    {
+        $status      = $_GET['status']  ?? '';
+        $mensaje     = $_GET['mensaje'] ?? '';
+        $estudiantes = $this->model->obtenerTodos();
+
+        $this->cargarVista('estudiantes/index', compact('estudiantes', 'status', 'mensaje'));
+    }
+
+    // ── Mostrar formulario de creacion ───────────────────────────────────────
+    public function crear(): void
+    {
+        $status  = $_GET['status']  ?? '';
+        $mensaje = $_GET['mensaje'] ?? '';
+
+        $this->cargarVista('estudiantes/crear', compact('status', 'mensaje'));
+    }
+
+    // ── Guardar nuevo estudiante (POST) ──────────────────────────────────────
+    public function guardar(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirigir('index');
+            return;
+        }
+
+        $nombre = trim($_POST['nombre'] ?? '');
+        $email  = trim($_POST['email']  ?? '');
+        $ficha  = trim($_POST['ficha']  ?? '');
+
+        if (empty($nombre) || empty($email)) {
+            $this->redirigir('crear', 'error',
+                urlencode('El nombre y el email son obligatorios.'));
+            return;
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->redirigir('crear', 'error',
+                urlencode('El formato del email no es valido.'));
+            return;
+        }
+
+        $ok = $this->model->crear([
+            'nombre' => $nombre,
+            'email'  => $email,
+            'ficha'  => $ficha,
+        ]);
+
+        if ($ok) {
+            $this->redirigir('index', 'creado',
+                urlencode("El estudiante \"$nombre\" fue registrado correctamente."));
+        } else {
+            $this->redirigir('crear', 'error',
+                urlencode('No se pudo guardar. El email ya puede estar en uso.'));
+        }
+    }
+
+    // ── Mostrar formulario de edicion ────────────────────────────────────────
+    public function editar(): void
+    {
+        $id = intval($_GET['id'] ?? 0);
+
+        if ($id <= 0) {
+            $this->redirigir('index', 'error', urlencode('ID no valido.'));
+            return;
+        }
+
+        $estudiante = $this->model->obtenerPorId($id);
+
+        if (!$estudiante) {
+            $this->redirigir('index', 'error', urlencode('Estudiante no encontrado.'));
+            return;
+        }
+
+        $status  = $_GET['status']  ?? '';
+        $mensaje = $_GET['mensaje'] ?? '';
+
+        $this->cargarVista('estudiantes/editar',
+            compact('estudiante', 'status', 'mensaje'));
+    }
+
+    // ── Actualizar estudiante (POST) ─────────────────────────────────────────
+    public function actualizar(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirigir('index');
+            return;
+        }
+
+        $id     = intval($_POST['id']     ?? 0);
+        $nombre = trim($_POST['nombre']   ?? '');
+        $email  = trim($_POST['email']    ?? '');
+        $ficha  = trim($_POST['ficha']    ?? '');
+
+        if ($id <= 0 || empty($nombre) || empty($email)) {
+            $this->redirigir('editar', 'error',
+                urlencode('Datos incompletos.'), $id);
+            return;
+        }
+
+        $ok = $this->model->actualizar($id, [
+            'nombre' => $nombre,
+            'email'  => $email,
+            'ficha'  => $ficha,
+        ]);
+
+        if ($ok) {
+            $this->redirigir('index', 'editado',
+                urlencode("Los datos de \"$nombre\" fueron actualizados."));
+        } else {
+            $this->redirigir('editar', 'error',
+                urlencode('No se pudo actualizar. El email puede estar en uso.'), $id);
+        }
+    }
+
+    // ── Eliminar estudiante ──────────────────────────────────────────────────
+    public function eliminar(): void
+    {
+        $id = intval($_GET['id'] ?? 0);
+
+        if ($id <= 0) {
+            $this->redirigir('index', 'error', urlencode('ID no valido.'));
+            return;
+        }
+
+        $est = $this->model->obtenerPorId($id);
+
+        if (!$est) {
+            $this->redirigir('index', 'error', urlencode('Estudiante no encontrado.'));
+            return;
+        }
+
+        $ok = $this->model->eliminar($id);
+
+        if ($ok) {
+            $this->redirigir('index', 'eliminado',
+                urlencode("\"$est[nombre]\" fue eliminado del sistema."));
+        } else {
+            $this->redirigir('index', 'error',
+                urlencode('No se pudo eliminar el registro.'));
+        }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // METODOS PRIVADOS AUXILIARES
+    // ════════════════════════════════════════════════════════════════════════
+
+    // Carga el archivo de vista y le inyecta variables mediante extract()
+    private function cargarVista(string $vista, array $datos = []): void
+    {
+        extract($datos);
+        require __DIR__ . "/../views/{$vista}.php";
+    }
+
+    // Construye y ejecuta una redireccion hacia el router
+    private function redirigir(
+        string $action,
+        string $status  = '',
+        string $mensaje = '',
+        int    $id      = 0
+    ): void {
+        $url = "index.php?action={$action}";
+        if ($status)  $url .= "&status={$status}";
+        if ($mensaje) $url .= "&mensaje={$mensaje}";
+        if ($id > 0)  $url .= "&id={$id}";
+        header("Location: {$url}");
+        exit;
+    }
+}
+
+────────────────────────────────────────────────────────────────────────────────
+
+  Notar en el Controller:
+    - compact('var1','var2') crea ['var1' => $var1, 'var2' => $var2]
+    - extract($datos) hace el proceso inverso: convierte claves en variables
+    - filter_var() con FILTER_VALIDATE_EMAIL es validacion nativa de PHP
+    - Siempre se llama exit despues de header('Location...') para detener
+      la ejecucion del script inmediatamente
+
+  Preguntas de reflexion:
+    - ?Por que guardar() verifica REQUEST_METHOD al inicio?
+    - ?En que se diferencia intval() de (int)?
+    - ?Que hace trim() y por que es importante antes de validar?
+
+
+════════════════════════════════════════════════════════════════════════════════
+  PASO 7 — ROUTER
+  Archivo: index.php (raiz del proyecto)
+════════════════════════════════════════════════════════════════════════════════
+
+El Router es el unico archivo al que apunta el navegador.
+Lee el parametro ?action= de la URL y llama al metodo correspondiente
+del Controller. Todo el trafico pasa por aqui.
+
+  URL de ejemplo:
+    http://localhost/mvc-sweetalert/index.php?action=crear
+    http://localhost/mvc-sweetalert/index.php?action=editar&id=2
+
+─── index.php ──────────────────────────────────────────────────────────────────
+
+<?php
+
+require_once __DIR__ . '/controllers/EstudianteController.php';
+
+$action = $_GET['action'] ?? 'index';
+
+$controller = new EstudianteController();
+
+// Solo estas acciones son validas (lista blanca de seguridad)
+$accionesPermitidas = [
+    'index'      => 'index',
+    'crear'      => 'crear',
+    'guardar'    => 'guardar',
+    'editar'     => 'editar',
+    'actualizar' => 'actualizar',
+    'eliminar'   => 'eliminar',
+];
+
+if (array_key_exists($action, $accionesPermitidas)) {
+    $metodo = $accionesPermitidas[$action];
+    $controller->$metodo();
+} else {
+    header('Location: index.php?action=index');
+    exit;
+}
+
+────────────────────────────────────────────────────────────────────────────────
+
+  Por que una lista blanca?
+    Sin ella, alguien podria poner ?action=metodoSecreto en la URL e intentar
+    ejecutar metodos internos del Controller. La lista blanca garantiza que
+    solo se puedan llamar las acciones explicitamente permitidas.
+
+  Preguntas de reflexion:
+    - ?Que hace $controller->$metodo() con el signo $ antes del nombre?
+    - ?Que accion se ejecuta si el usuario accede solo a index.php sin parametros?
+    - ?Que pasaria si alguien pone ?action=eliminarTodo en la URL?
+
+
+════════════════════════════════════════════════════════════════════════════════
+  PASO 8 — VIEW: LISTA DE ESTUDIANTES
+  Archivo: views/estudiantes/index.php
+════════════════════════════════════════════════════════════════════════════════
+
+Variables que llegan desde el Controller (ya sanitizadas):
+  $estudiantes  array   Lista de estudiantes de la base de datos
+  $status       string  'creado', 'editado', 'eliminado', 'error' o ''
+  $mensaje      string  Texto descriptivo de la operacion
+
+Librerias externas que se cargan en el <head>:
+  Font Awesome 6  Iconos vectoriales (fa-solid fa-user-plus, etc.)
+  SweetAlert2 11  Alertas modernas
+  app.css         Estilos del proyecto (creado en Paso 3)
+
+─── views/estudiantes/index.php ────────────────────────────────────────────────
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion de Estudiantes — SENA</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+
+        <div class="page-header">
+            <h2>Gestion de Estudiantes</h2>
+            <a href="index.php?action=crear" class="btn btn--primary">
+                <i class="fa-solid fa-user-plus"></i> Nuevo estudiante
+            </a>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Ficha</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($estudiantes)): ?>
+                    <tr>
+                        <td colspan="5" class="empty-row">
+                            <i class="fa-solid fa-circle-info"></i>
+                            No hay estudiantes registrados.
+                        </td>
+                    </tr>
+                <?php else: ?>
+                    <?php foreach ($estudiantes as $est): ?>
+                    <tr>
+                        <td><?php echo $est['id']; ?></td>
+                        <td><?php echo htmlspecialchars($est['nombre']); ?></td>
+                        <td><?php echo htmlspecialchars($est['email']); ?></td>
+                        <td>
+                            <span class="badge">
+                                <?php echo htmlspecialchars($est['ficha']); ?>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="table-actions">
+                                <a href="index.php?action=editar&id=<?php echo $est['id']; ?>"
+                                   class="btn btn--warning btn--sm">
+                                    <i class="fa-solid fa-pen-to-square"></i> Editar
+                                </a>
+                                <button class="btn btn--danger btn--sm"
+                                    onclick="confirmarEliminar(
+                                        <?php echo $est['id']; ?>,
+                                        '<?php echo addslashes($est['nombre']); ?>'
+                                    )">
+                                    <i class="fa-solid fa-trash"></i> Eliminar
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+<script>
+    // ── Mensajes flash desde el Controller ──────────────────────────────────
+    const status  = "<?php echo $status; ?>";
+    const mensaje = <?php echo json_encode($mensaje); ?>;
+
+    const alertas = {
+        creado:    { icon: 'success', title: 'Estudiante creado'  },
+        editado:   { icon: 'success', title: 'Datos actualizados' },
+        eliminado: { icon: 'info',    title: 'Registro eliminado' },
+        error:     { icon: 'error',   title: 'Error'              },
+    };
+
+    if (status && alertas[status]) {
+        Swal.fire({
+            icon:              alertas[status].icon,
+            title:             alertas[status].title,
+            text:              mensaje,
+            timer:             status === 'error' ? undefined : 2500,
+            timerProgressBar:  status !== 'error',
+            showConfirmButton: status === 'error',
+        });
+    }
+
+    // ── Confirmacion antes de eliminar ───────────────────────────────────────
+    function confirmarEliminar(id, nombre) {
+        Swal.fire({
+            icon:              'warning',
+            title:             'Eliminar estudiante',
+            html:              `Seguro que deseas eliminar a <strong>${nombre}</strong>?
+                               <br><small>Esta accion no se puede deshacer.</small>`,
+            showCancelButton:  true,
+            confirmButtonText: 'Si, eliminar',
+            cancelButtonText:  'Cancelar',
+            confirmButtonColor:'#d9534f',
+            cancelButtonColor: '#6c757d',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `index.php?action=eliminar&id=${id}`;
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
+
+────────────────────────────────────────────────────────────────────────────────
+
+  Notar en esta View:
+    - htmlspecialchars() en cada dato que viene de la BD (protege contra XSS)
+    - addslashes() en el nombre dentro del onclick (evita romper las comillas JS)
+    - json_encode() para pasar el mensaje PHP a JavaScript de forma segura
+    - El objeto "alertas" evita repetir if/else para cada tipo de mensaje
+    - timer: undefined en errores hace que el usuario deba cerrar la alerta
+
+  Preguntas de reflexion:
+    - ?Que es XSS y como lo previene htmlspecialchars()?
+    - ?Por que json_encode() es mejor que echo directo para variables JS?
+    - ?Que significa result.isConfirmed en el .then() de SweetAlert2?
+
+
+════════════════════════════════════════════════════════════════════════════════
+  PASO 9 — VIEW: FORMULARIO DE CREACION
+  Archivo: views/estudiantes/crear.php
+════════════════════════════════════════════════════════════════════════════════
+
+Variables que llegan desde el Controller:
+  $status   string  'error' o ''
+  $mensaje  string  Descripcion del error si lo hay
+
+Validacion en dos capas:
+  1. JavaScript (SweetAlert2): primera linea de defensa, antes de enviar
+  2. PHP en el Controller:    segunda linea, por si JS fue deshabilitado
+
+─── views/estudiantes/crear.php ────────────────────────────────────────────────
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Estudiante — SENA</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<div class="container--narrow">
+    <div class="card">
+
+        <div class="page-header">
+            <h2>Nuevo estudiante</h2>
+        </div>
+
+        <form id="formCrear" action="index.php?action=guardar" method="POST">
+
+            <div class="form-group">
+                <label>
+                    Nombre completo <span class="required">*</span>
+                </label>
+                <input type="text"
+                       name="nombre"
+                       class="form-control"
+                       placeholder="Ej: Carlos Perez"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    Email institucional <span class="required">*</span>
+                </label>
+                <input type="email"
+                       name="email"
+                       class="form-control"
+                       placeholder="Ej: carlos@sena.edu.co"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label>Numero de ficha</label>
+                <input type="text"
+                       name="ficha"
+                       class="form-control"
+                       placeholder="Ej: 2758634">
+            </div>
+
+            <div class="form-actions">
+                <button type="button"
+                        class="btn btn--primary"
+                        onclick="confirmarGuardar()">
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar
+                </button>
+                <a href="index.php?action=index" class="btn btn--secondary">
+                    <i class="fa-solid fa-arrow-left"></i> Volver
+                </a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+    // Error devuelto por el Controller (validacion del servidor)
+    const status  = "<?php echo $status; ?>";
+    const mensaje = <?php echo json_encode($mensaje); ?>;
+
+    if (status === 'error') {
+        Swal.fire({
+            icon:  'error',
+            title: 'No se pudo guardar',
+            text:  mensaje,
+        });
+    }
+
+    // Validacion del cliente antes de enviar
+    function confirmarGuardar() {
+        const nombre = document.querySelector('[name=nombre]').value.trim();
+        const email  = document.querySelector('[name=email]').value.trim();
+
+        if (!nombre || !email) {
+            Swal.fire({
+                icon:  'warning',
+                title: 'Campos requeridos',
+                text:  'Completa nombre y email antes de continuar.',
+            });
+            return;
+        }
+
+        Swal.fire({
+            icon:              'question',
+            title:             'Confirmar registro',
+            html:              `Se registrara a: <strong>${nombre}</strong>`,
+            showCancelButton:  true,
+            confirmButtonText: 'Si, guardar',
+            cancelButtonText:  'Revisar datos',
+            confirmButtonColor:'#39a900',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('formCrear').submit();
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
+
+────────────────────────────────────────────────────────────────────────────────
+
+  Notar en esta View:
+    - El boton de guardar usa type="button", NO type="submit"
+      Esto evita que el browser envie el formulario antes de que JS confirme
+    - Solo se llama form.submit() despues de que el usuario confirmo en Swal
+    - La validacion JS es complementaria, NO reemplaza la del Controller
+
+  Preguntas de reflexion:
+    - ?Que pasaria si el boton fuera type="submit"?
+    - ?Por que se valida tambien en el Controller si ya se valida en JS?
+    - ?Que hace .trim() en JavaScript?
+
+
+════════════════════════════════════════════════════════════════════════════════
+  PASO 10 — VIEW: FORMULARIO DE EDICION
+  Archivo: views/estudiantes/editar.php
+════════════════════════════════════════════════════════════════════════════════
+
+Variables que llegan desde el Controller:
+  $estudiante  array   Datos actuales del estudiante (id, nombre, email, ficha)
+  $status      string  'error' o ''
+  $mensaje     string  Descripcion del error si lo hay
+
+Diferencia con crear.php:
+  - Los campos aparecen PRE-CARGADOS con los datos actuales del estudiante
+  - Hay un campo oculto con el ID para que el Controller sepa cual actualizar
+  - Los colores usan la variante --warning (naranja) para diferenciar visualmente
+
+─── views/estudiantes/editar.php ───────────────────────────────────────────────
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Estudiante — SENA</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<div class="container--narrow">
+    <div class="card">
+
+        <div class="page-header">
+            <h2 class="header--warning">Editar estudiante</h2>
+        </div>
+
+        <form id="formEditar" action="index.php?action=actualizar" method="POST">
+
+            <!-- Sin este campo el Controller no sabria que registro actualizar -->
+            <input type="hidden"
+                   name="id"
+                   value="<?php echo $estudiante['id']; ?>">
+
+            <div class="form-group">
+                <label>
+                    Nombre completo <span class="required">*</span>
+                </label>
+                <input type="text"
+                       name="nombre"
+                       class="form-control form-control--warning"
+                       value="<?php echo htmlspecialchars($estudiante['nombre']); ?>"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    Email institucional <span class="required">*</span>
+                </label>
+                <input type="email"
+                       name="email"
+                       class="form-control form-control--warning"
+                       value="<?php echo htmlspecialchars($estudiante['email']); ?>"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label>Numero de ficha</label>
+                <input type="text"
+                       name="ficha"
+                       class="form-control form-control--warning"
+                       value="<?php echo htmlspecialchars($estudiante['ficha']); ?>">
+            </div>
+
+            <div class="form-actions">
+                <button type="button"
+                        class="btn btn--warning"
+                        onclick="confirmarEdicion()">
+                    <i class="fa-solid fa-floppy-disk"></i> Actualizar
+                </button>
+                <a href="index.php?action=index" class="btn btn--secondary">
+                    <i class="fa-solid fa-arrow-left"></i> Volver
+                </a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+    const status  = "<?php echo $status; ?>";
+    const mensaje = <?php echo json_encode($mensaje); ?>;
+
+    if (status === 'error') {
+        Swal.fire({
+            icon:  'error',
+            title: 'Error al actualizar',
+            text:  mensaje,
+        });
+    }
+
+    function confirmarEdicion() {
+        const nombre = document.querySelector('[name=nombre]').value.trim();
+
+        if (!nombre) {
+            Swal.fire({
+                icon:  'warning',
+                title: 'Campo requerido',
+                text:  'El nombre no puede estar vacio.',
+            });
+            return;
+        }
+
+        Swal.fire({
+            icon:              'question',
+            title:             'Guardar cambios',
+            html:              `Se actualizaran los datos de <strong>${nombre}</strong>`,
+            showCancelButton:  true,
+            confirmButtonText: 'Si, actualizar',
+            cancelButtonText:  'Cancelar',
+            confirmButtonColor:'#e6940a',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('formEditar').submit();
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
+
+────────────────────────────────────────────────────────────────────────────────
+
+  Notar en esta View:
+    - value="<?php echo htmlspecialchars($estudiante['nombre']); ?>"
+      precarga el campo con los datos actuales del estudiante
+    - <input type="hidden" name="id"> viaja invisible con el formulario
+      pero el Controller lo recibe en $_POST['id']
+    - form-control--warning cambia el color del focus a naranja
+
+
+════════════════════════════════════════════════════════════════════════════════
+  PASO 11 — VERIFICACION FINAL
+════════════════════════════════════════════════════════════════════════════════
+
+Antes de probar, confirmar que la estructura de archivos es exactamente esta:
+
+  mvc-sweetalert/
+  ├── assets/css/app.css                          (Paso 3)
+  ├── config/Database.php                         (Paso 4)
+  ├── models/EstudianteModel.php                  (Paso 5)
+  ├── controllers/EstudianteController.php        (Paso 6)
+  ├── views/estudiantes/index.php                 (Paso 8)
+  ├── views/estudiantes/crear.php                 (Paso 9)
+  ├── views/estudiantes/editar.php                (Paso 10)
+  └── index.php                                   (Paso 7)
+
+Lista de pruebas:
+
+  Prueba 1 — READ (Listar)
+    Acceder a: http://localhost/mvc-sweetalert/index.php
+    Resultado esperado: tabla con 3 estudiantes, sin errores
+
+  Prueba 2 — CREATE (Crear)
+    Clic en "Nuevo estudiante"
+    Llenar el formulario y guardar
+    Resultado esperado: SweetAlert2 de confirmacion, luego alerta verde de exito
+
+  Prueba 3 — CREATE con error
+    Intentar guardar sin nombre ni email
+    Resultado esperado: SweetAlert2 de advertencia en el cliente
+
+  Prueba 4 — UPDATE (Editar)
+    Clic en "Editar" en cualquier estudiante
+    Resultado esperado: formulario pre-cargado con sus datos
+    Modificar el nombre y guardar
+    Resultado esperado: alerta verde "Datos actualizados"
+
+  Prueba 5 — DELETE (Eliminar)
+    Clic en "Eliminar" en cualquier estudiante
+    Resultado esperado: alerta de confirmacion con el nombre del estudiante
+    Confirmar
+    Resultado esperado: alerta azul "Registro eliminado"
+
+  Prueba 6 — Seguridad del Router
+    Acceder a: http://localhost/mvc-sweetalert/index.php?action=hackerAtaque
+    Resultado esperado: redireccion silenciosa al listado (sin error)
+
+
+════════════════════════════════════════════════════════════════════════════════
+  DIAGRAMA DE FLUJO — CREAR UN ESTUDIANTE
+════════════════════════════════════════════════════════════════════════════════
+
+  [Usuario] clic en "Guardar"
+      |
+      v
+  [View: crear.php / JavaScript]
+      SweetAlert2 pregunta si confirma
+      Si confirma → form.submit()
+      |
+      v
+  POST → index.php?action=guardar
+      |
+      v
+  [Router: index.php]
+      action = 'guardar' → llama Controller::guardar()
+      |
+      v
+  [Controller: guardar()]
+      Sanitiza $_POST (trim)
+      Valida campos (PHP)
+      |
+      ├── Invalido → redirige a crear con ?status=error
+      |
+      └── Valido → llama Model::crear($datos)
+                        |
+                        v
+                  [Model: crear()]
+                      Ejecuta INSERT INTO estudiantes ...
+                      Retorna true o false
+                        |
+                        v
+                  [Controller: guardar()] continua
+                      |
+                      ├── false → redirige a crear con ?status=error
+                      |
+                      └── true  → redirige a index con ?status=creado
+                                        |
+                                        v
+                                  [Router] action = 'index'
+                                  [Controller::index()]
+                                  [Model::obtenerTodos()]
+                                  [View: index.php]
+                                      JavaScript lee status = 'creado'
+                                      SweetAlert2 muestra alerta verde ✓
+
+
+════════════════════════════════════════════════════════════════════════════════
+  ACTIVIDADES DE EXTENSION
+════════════════════════════════════════════════════════════════════════════════
+
+  Estas actividades amplian el proyecto. Estan ordenadas de menor a mayor
+  dificultad. El instructor indicara cuales son obligatorias.
+
+  NIVEL 1 — Agregar un campo nuevo
+  ──────────────────────────────────
+    Agregar el campo "programa" a la tabla estudiantes.
+    Actualizar EstudianteModel (INSERT y UPDATE).
+    Agregar el input en crear.php y editar.php.
+    Mostrar la columna en index.php.
+    No se debe romper ninguna funcionalidad existente.
+
+  NIVEL 2 — Busqueda por ficha
+  ──────────────────────────────
+    Agregar un metodo buscarPorFicha(string $ficha): array en el Model.
+    Agregar la accion 'buscar' en el Router.
+    Crear el metodo buscar() en el Controller.
+    Crear la view views/estudiantes/buscar.php con un formulario y resultados.
+
+  NIVEL 3 — Contador en el encabezado
+  ─────────────────────────────────────
+    Mostrar el total de estudiantes junto al titulo en index.php.
+    El dato debe venir del Controller (que lo obtiene del Model).
+    La View no debe hacer ningun calculo, solo mostrarlo.
+
+  NIVEL 4 — Eliminar por AJAX
+  ──────────────────────────────
+    Crear la accion 'eliminarAjax' en el Router y Controller.
+    El Controller debe retornar JSON: echo json_encode(['ok' => true]).
+    Desde la View usar fetch() en lugar de window.location.href.
+    Eliminar la fila de la tabla sin recargar la pagina.
+    Mostrar SweetAlert2 de confirmacion con el resultado.
+
+
+════════════════════════════════════════════════════════════════════════════════
+  RESUMEN DE SWEETALERT2 — PATRONES USADOS EN ESTE PROYECTO
+════════════════════════════════════════════════════════════════════════════════
+
+  // 1. Alerta simple con icono
+  Swal.fire({
+      icon:  'success' | 'error' | 'warning' | 'info' | 'question',
+      title: 'Titulo',
+      text:  'Mensaje',
+  });
+
+  // 2. Alerta con cierre automatico
+  Swal.fire({
+      icon:              'success',
+      title:             'Guardado',
+      text:              'Operacion completada',
+      timer:             2500,
+      timerProgressBar:  true,
+      showConfirmButton: false,
+  });
+
+  // 3. Alerta de confirmacion (retorna Promesa)
+  Swal.fire({
+      icon:              'warning',
+      title:             'Confirmar',
+      text:              'Esta accion no se puede deshacer',
+      showCancelButton:  true,
+      confirmButtonText: 'Si, continuar',
+      cancelButtonText:  'Cancelar',
+      confirmButtonColor:'#d9534f',
+      cancelButtonColor: '#6c757d',
+  }).then((result) => {
+      if (result.isConfirmed) {
+          // el usuario acepto
+      }
+  });
+
+  // 4. Inyeccion segura de datos PHP en JavaScript
+  const mensaje = <?php echo json_encode($mensaje); ?>;
+  //  Correcto: json_encode maneja comillas y caracteres especiales
+
+  //  Incorrecto (puede romper el JS con ciertos textos):
+  const mensaje = "<?php echo $mensaje; ?>";
+
+
+════════════════════════════════════════════════════════════════════════════════
+  ERRORES FRECUENTES Y COMO RESOLVERLOS
+════════════════════════════════════════════════════════════════════════════════
+
+  ERROR: Failed to open stream: No such file or directory
+  CAUSA: El archivo de View no existe en la ruta indicada
+  SOLUCION: Verificar que la carpeta views/estudiantes/ existe y que
+            index.php, crear.php y editar.php estan dentro de ella
+
+  ERROR: La alerta aparece pero el formulario no se envia
+  CAUSA: El boton tiene type="submit" en lugar de type="button"
+  SOLUCION: Cambiar a type="button". El envio lo controla JS con form.submit()
+
+  ERROR: Pagina en blanco al guardar
+  CAUSA: Falta exit despues del header('Location...')
+  SOLUCION: Siempre escribir exit inmediatamente despues de header()
+
+  ERROR: Mensaje con caracteres raros en la alerta
+  CAUSA: Se uso echo $mensaje directamente en el JavaScript
+  SOLUCION: Usar json_encode(): const mensaje = <?php echo json_encode($mensaje); ?>;
+
+  ERROR: La tabla aparece pero sin estilos
+  CAUSA: La ruta a app.css es incorrecta
+  SOLUCION: La ruta href="assets/css/app.css" es relativa al index.php raiz.
+            Verificar que la carpeta assets/css/ existe con el archivo dentro.
+
+  ERROR: Duplicate entry for key 'email'
+  CAUSA: Se intento registrar un email que ya existe (columna UNIQUE)
+  SOLUCION: El Controller ya maneja esto con el mensaje "El email puede estar en uso"
+            Es el comportamiento correcto del sistema.
+
+
+════════════════════════════════════════════════════════════════════════════════
+  GLOSARIO
+════════════════════════════════════════════════════════════════════════════════
+
+  MVC          Patron de arquitectura: Model, View, Controller
+  PDO          PHP Data Objects — interfaz para conectarse a bases de datos
+  Singleton    Patron que garantiza una sola instancia de un objeto
+  Prepared     Consulta SQL parametrizada, protegida contra SQL Injection
+  Statement
+  CRUD         Create, Read, Update, Delete — las 4 operaciones basicas
+  XSS          Cross-Site Scripting — ataque que inyecta JS malicioso en HTML
+  htmlspecialchars  Funcion PHP que escapa caracteres HTML para prevenir XSS
+  json_encode  Funcion PHP que convierte datos a formato JSON seguro para JS
+  urlencode    Funcion PHP que codifica texto para usarlo en una URL
+  trim()       Elimina espacios al inicio y al final de un string
+  compact()    Crea un array asociativo a partir de nombres de variables
+  extract()    Convierte claves de un array en variables independientes
+  filter_var   Funcion PHP para validar y filtrar datos (emails, URLs, etc.)
+  Promesa      Objeto JS que representa una operacion que puede completarse
+               o fallar en el futuro (SweetAlert2 usa .then() para esto)
+
+════════════════════════════════════════════════════════════════════════════════
+  Instructor: James — SENA, Medellin
+  Proyecto: MVC nativo PHP + SweetAlert2 + Font Awesome
+  Este patron es la base conceptual de Laravel (Eloquent = Model,
+  Blade = View, Resource Controllers = Controller, routes/web.php = Router)
+════════════════════════════════════════════════════════════════════════════════
