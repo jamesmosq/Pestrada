@@ -1,11 +1,21 @@
 <?php
-// Iniciar la sesión
-session_start();
+/**
+ * Página de Logout
+ * Cierra la sesión del usuario de forma segura
+ */
 
-// Destruir la sesión
-session_destroy();
+// Iniciar la sesión si no está activa
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-// Redirigir al usuario a la página de inicio de sesión
-header('Location: index.php');
+// Incluir funciones
+require_once __DIR__ . '/functions.php';
+
+// Cerrar sesión usando la función mejorada
+logoutUser();
+
+// Redirigir al login con mensaje
+header('Location: login.php?mensaje=sesion_cerrada');
 exit;
 ?>

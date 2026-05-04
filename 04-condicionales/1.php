@@ -13,10 +13,11 @@
     <h2>1. if</h2>
     <p>El condicional if se utiliza para ejecutar un bloque de código si una condición es verdadera.</p>
     <?php
-    $edad = 25;
+    $edad = 102;
 
     if ($edad >= 18) {
         echo "Eres mayor de edad y tienes $edad años.";
+
     }
     ?>
 
@@ -49,7 +50,7 @@
 <h2>4. switch</h2>
 <p>El condicional switch se utiliza para seleccionar uno de varios bloques de código para ejecutar.</p>
     <?php
-    $día = "Lunes";
+    $día = "mierco";
 
     switch ($día) {
         case "Lunes":

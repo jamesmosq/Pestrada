@@ -1,4 +1,7 @@
 <?php
+// NOTA: Este archivo usa fgets(STDIN) — solo funciona por consola (CLI).
+// Para ejecutar: php D.PHP   (desde la terminal, NO desde el navegador)
+
 // Ejemplo de un programa estructurado para calcular el factorial de un número
 
 // Función para calcular el factorial

@@ -1,12 +1,12 @@
 <?php
+/**
+ * Conexión a base de datos para CRUD de Tareas - PDO
+ */
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-$conn = mysqli_connect(
-    'localhost',
-    'root',   // USUARIO
-    '',        //CONTRASEÑA
-    'tareas_crud' // BASE DE DATOS
-);
+require_once __DIR__ . '/../../config.php';
 
-?>
+$conn = getDBConnection(DB_NAME_TAREAS);

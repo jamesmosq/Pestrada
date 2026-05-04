@@ -1,6 +1,14 @@
+
+<?php
+
+
+?>
+
+
 <html>
     <head></head>
     <body>
+
         <h1>Inicios</h1>
     </body>
 </html>
@@ -8,3 +16,4 @@
 como se ve, no hay datos del lenguaje de programacion, solo el archivo esta en formato php, lo demas es html,
 por lo tanto php, puede procesar datos de tipo html
 -->
+

@@ -43,12 +43,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <?php 
-                        
-                        $query = "SELECT * FROM tareas";
-                        $result_tareas = mysqli_query($conn, $query);
-
-                        while($row = mysqli_fetch_array($result_tareas)) { ?>
+                        <?php
+                        $stmt = $conn->query("SELECT * FROM tareas ORDER BY created DESC");
+                        while($row = $stmt->fetch()) { ?>
 
                             <tr>
                                 <td><?php echo $row['titulo'] ?></td>

@@ -1,7 +1,7 @@
 <?php
 
-$saldoInicial = 1000;
-$retiro = 100;
+$saldoInicial = 100;
+$retiro = 30;
 
 echo "Bienvenido al cajero automático". "<br>";
 echo "Saldo actual: $" . $saldoInicial . "<br>";

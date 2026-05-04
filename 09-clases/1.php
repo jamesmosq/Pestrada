@@ -28,5 +28,7 @@ class MiClase {
     public function setPropiedad2($valor) {
         $this->propiedad2 = $valor;
     }
+    // Método estático
+
 }
 ?>

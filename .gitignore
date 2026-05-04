@@ -1,0 +1,56 @@
+# IDE and Editor Files
+.idea/
+.vscode/
+.claude/
+*.swp
+*.swo
+*~
+.DS_Store
+.qodo/
+
+# PHP
+vendor/
+composer.phar
+composer.lock
+*.log
+
+# Environment and Configuration
+.env
+.env.local
+.env.*.local
+config.php
+config.local.php
+
+# Database
+*.sql.gz
+*.sql.bak
+backup/
+
+# Logs
+logs/
+*.log
+
+# Cache and Temp
+cache/
+tmp/
+temp/
+
+# Uploads (descomenta si no quieres versionar uploads)
+# uploads/
+
+# System Files
+Thumbs.db
+desktop.ini
+
+# PHPUnit
+.phpunit.result.cache
+phpunit.xml
+
+# Node (si usas herramientas frontend)
+node_modules/
+package-lock.json
+npm-debug.log
+
+# Compiled assets
+dist/
+build/

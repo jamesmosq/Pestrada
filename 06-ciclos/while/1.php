@@ -1,4 +1,6 @@
 <?php
+// NOTA: Este ejemplo usa readline() que solo funciona por consola (CLI).
+// Para ejecutar: php 1.php   (desde la terminal, NO desde el navegador)
 
 $contraseña_correcta = "1234";
 $contraseña = "2";

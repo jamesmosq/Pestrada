@@ -3,6 +3,7 @@ class Persona {
     // Propiedades
     public $nombre;
     public $edad;
+    public $apellido;
 
     // Método
     public function saludar() {
@@ -15,7 +16,7 @@ $persona1 = new Persona();
 $persona1->nombre = "Juan";
 $persona1->edad = 25;
 
-$persona2 = new persona();
+$persona2 = new Persona();
 $persona2 ->nombre = "James";
 $persona2->edad = 12;
 

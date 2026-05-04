@@ -1,14 +1,19 @@
 <?php
-$host = 'localhost';
-$dbname = 'login_db';
-$username = 'root';  // Cambia esto según tu configuración
-$password = '';      // Cambia esto según tu configuración
+/**
+ * Archivo de conexión a base de datos para Miniproyecto Login
+ * Mejorado para usar configuración centralizada y mejores prácticas
+ */
+
+// Cargar configuración centralizada
+require_once __DIR__ . '/../config.php';
 
 try {
-    $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // Crear conexión PDO usando la función helper del config
+    $conn = getDBConnection(DB_NAME_LOGIN);
+
 } catch(PDOException $e) {
-    echo "Error de conexión: " . $e->getMessage();
-    die();
+    // Log del error (no mostrar detalles al usuario en producción)
+    error_log("Error de conexión PDO: " . $e->getMessage());
+    die("Error al conectar con la base de datos. Por favor, intenta más tarde.");
 }
 ?>

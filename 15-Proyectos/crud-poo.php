@@ -15,9 +15,9 @@ proyecto/
 <?php
 class Database {
     private $host = "localhost";
-    private $db_name = "mi_base_de_datos";
-    private $username = "usuario";
-    private $password = "contraseña";
+    private $db_name = "sistema_nomina";
+    private $username = "root";
+    private $password = "base1234";
     private $conn = null;
 
     public function getConnection() {

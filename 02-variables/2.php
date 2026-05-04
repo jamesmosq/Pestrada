@@ -25,11 +25,17 @@ print GRAVEDAD."<br>";
 
 //Otra sintaxis que nos ofrece PHP es usando la palabra const, como en JavaScript.
 define('PI', 3.14);
-const PESO = 40;
+const PESO = 90;
+
 $result = PESO * 3;
+
 print "Procesando: ".$result."<br>";
 
-print PESO;
+print PESO."<br>";
+
+define('DATORANDOM',"ESTE ES MI NOMBRE");
+
+print DATORANDOM;
 ?>
 </body>
 </html>
