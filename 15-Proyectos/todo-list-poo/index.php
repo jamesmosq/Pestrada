@@ -11,11 +11,12 @@ switch ($action) {
     case 'add':
         $controller->add();
         break;
+    // toggle y delete leen sus datos de $_POST dentro del controlador
     case 'toggle':
-        $controller->toggle($_GET['id']);
+        $controller->toggle();
         break;
     case 'delete':
-        $controller->delete($_GET['id']);
+        $controller->delete();
         break;
     default:
         $controller->index();

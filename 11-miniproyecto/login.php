@@ -17,8 +17,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         header("Location: dashboard.php");
         exit();
     } else {
-        echo "Usuario o contraseña incorrectos.";
+        echo "Usuario o contraseña incorrectos. <a href='index.html'>Volver</a>";
     }
+} else {
+    // Si alguien entra directo por GET, lo mandamos al formulario
+    header("Location: index.html");
+    exit();
 }
-?>
-<?php

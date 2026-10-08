@@ -483,11 +483,15 @@ class EstudianteModel
             "INSERT INTO estudiantes (nombre, email, ficha)
              VALUES (:nombre, :email, :ficha)"
         );
-        return $stmt->execute([
-            ':nombre' => $datos['nombre'],
-            ':email'  => $datos['email'],
-            ':ficha'  => $datos['ficha'],
-        ]);
+        try {
+            return $stmt->execute([
+                ':nombre' => $datos['nombre'],
+                ':email'  => $datos['email'],
+                ':ficha'  => $datos['ficha'],
+            ]);
+        } catch (PDOException $e) {
+            return $this->manejarDuplicado($e);
+        }
     }
 
     // ── Actualizar estudiante existente ──────────────────────────────────────
@@ -500,12 +504,16 @@ class EstudianteModel
                  ficha  = :ficha
              WHERE id = :id"
         );
-        return $stmt->execute([
-            ':nombre' => $datos['nombre'],
-            ':email'  => $datos['email'],
-            ':ficha'  => $datos['ficha'],
-            ':id'     => $id,
-        ]);
+        try {
+            return $stmt->execute([
+                ':nombre' => $datos['nombre'],
+                ':email'  => $datos['email'],
+                ':ficha'  => $datos['ficha'],
+                ':id'     => $id,
+            ]);
+        } catch (PDOException $e) {
+            return $this->manejarDuplicado($e);
+        }
     }
 
     // ── Eliminar estudiante ──────────────────────────────────────────────────
@@ -513,6 +521,17 @@ class EstudianteModel
     {
         $stmt = $this->db->prepare("DELETE FROM estudiantes WHERE id = ?");
         return $stmt->execute([$id]);
+    }
+
+    // Con ERRMODE_EXCEPTION, un email repetido lanza una excepcion (codigo 23000)
+    // en lugar de devolver false. La convertimos en false para que el
+    // Controller muestre el mensaje con SweetAlert2. Otros errores se relanzan.
+    private function manejarDuplicado(PDOException $e): bool
+    {
+        if ($e->getCode() === '23000') {
+            return false;
+        }
+        throw $e;
     }
 }
 
@@ -539,11 +558,35 @@ Metodos publicos (acciones disponibles):
   guardar()    - Procesar formulario de creacion (POST)
   editar()     - Mostrar formulario de edicion precargado (GET)
   actualizar() - Procesar formulario de edicion (POST)
-  eliminar()   - Eliminar y redirigir
+  eliminar()   - Eliminar y redirigir (solo por POST)
 
 Metodos privados (auxiliares internos):
-  cargarVista() - Incluye el archivo de View con sus variables
+  cargarVista() - Incluye el archivo de View con sus variables (y el token $csrf)
   redirigir()   - Centraliza todas las redirecciones
+  csrfToken()   - Genera, una vez por sesion, el token de seguridad
+  csrfValido()  - Comprueba que el formulario envio ese mismo token
+
+Concepto clave — Las acciones que modifican datos van por POST:
+  guardar(), actualizar() y eliminar() rechazan cualquier peticion que no sea POST.
+  Si eliminar funcionara con un enlace (GET), bastaria con que alguien abriera
+  index.php?action=eliminar&id=3 (o que el navegador precargara ese enlace)
+  para borrar un registro.
+
+Concepto clave — Token CSRF:
+  CSRF es un ataque en el que otra pagina envia un formulario a nuestro sistema
+  aprovechando que el usuario tiene la sesion abierta. Para evitarlo:
+    1. El Controller genera un codigo aleatorio y lo guarda en $_SESSION.
+    2. Cada formulario lo envia en un <input type="hidden" name="csrf_token">.
+    3. Antes de guardar, actualizar o eliminar, el Controller compara ambos con
+       hash_equals(). Si no coinciden, rechaza la peticion.
+  La otra pagina no puede leer nuestro token, asi que no puede falsificarlo.
+  En Laravel esto se escribe con una sola linea en el formulario: @csrf
+
+Concepto — Email repetido:
+  La columna email es UNIQUE. Con PDO::ERRMODE_EXCEPTION, insertar un email
+  repetido lanza una PDOException (codigo 23000). El Model la convierte en
+  false para que el Controller muestre el mensaje con SweetAlert2 en lugar de
+  un "Fatal error".
 
 ─── controllers/EstudianteController.php ───────────────────────────────────────
 
@@ -584,6 +627,12 @@ class EstudianteController
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirigir('index');
+            return;
+        }
+
+        if (!$this->csrfValido()) {
+            $this->redirigir('crear', 'error',
+                urlencode('La sesion expiro. Recarga la pagina e intenta de nuevo.'));
             return;
         }
 
@@ -655,9 +704,21 @@ class EstudianteController
         $email  = trim($_POST['email']    ?? '');
         $ficha  = trim($_POST['ficha']    ?? '');
 
+        if (!$this->csrfValido()) {
+            $this->redirigir('editar', 'error',
+                urlencode('La sesion expiro. Recarga la pagina e intenta de nuevo.'), $id);
+            return;
+        }
+
         if ($id <= 0 || empty($nombre) || empty($email)) {
             $this->redirigir('editar', 'error',
                 urlencode('Datos incompletos.'), $id);
+            return;
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->redirigir('editar', 'error',
+                urlencode('El formato del email no es valido.'), $id);
             return;
         }
 
@@ -676,10 +737,22 @@ class EstudianteController
         }
     }
 
-    // ── Eliminar estudiante ──────────────────────────────────────────────────
+    // ── Eliminar estudiante (POST) ───────────────────────────────────────────
+    // Se elimina por POST, nunca por GET: un simple enlace no debe poder borrar datos.
     public function eliminar(): void
     {
-        $id = intval($_GET['id'] ?? 0);
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirigir('index');
+            return;
+        }
+
+        if (!$this->csrfValido()) {
+            $this->redirigir('index', 'error',
+                urlencode('La sesion expiro. Recarga la pagina e intenta de nuevo.'));
+            return;
+        }
+
+        $id = intval($_POST['id'] ?? 0);
 
         if ($id <= 0) {
             $this->redirigir('index', 'error', urlencode('ID no valido.'));
@@ -703,14 +776,15 @@ class EstudianteController
                 urlencode('No se pudo eliminar el registro.'));
         }
     }
-
     // ════════════════════════════════════════════════════════════════════════
     // METODOS PRIVADOS AUXILIARES
     // ════════════════════════════════════════════════════════════════════════
 
     // Carga el archivo de vista y le inyecta variables mediante extract()
+    // Todas las vistas reciben $csrf para incluirlo en sus formularios.
     private function cargarVista(string $vista, array $datos = []): void
     {
+        $datos['csrf'] = $this->csrfToken();
         extract($datos);
         require __DIR__ . "/../views/{$vista}.php";
     }
@@ -728,6 +802,23 @@ class EstudianteController
         if ($id > 0)  $url .= "&id={$id}";
         header("Location: {$url}");
         exit;
+    }
+
+    // Genera (una sola vez por sesion) el token CSRF
+    private function csrfToken(): string
+    {
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+
+    // Comprueba que el formulario envio el mismo token que guarda la sesion
+    private function csrfValido(): bool
+    {
+        $token = $_POST['csrf_token'] ?? '';
+        return isset($_SESSION['csrf_token'])
+            && hash_equals($_SESSION['csrf_token'], $token);
     }
 }
 
@@ -755,6 +846,14 @@ El Router es el unico archivo al que apunta el navegador.
 Lee el parametro ?action= de la URL y llama al metodo correspondiente
 del Controller. Todo el trafico pasa por aqui.
 
+Ademas, el Router:
+  - Llama a session_start(): la sesion guarda el token CSRF.
+  - Define la constante DESDE_ROUTER. Cada View comprueba que exista; si alguien
+    abre una View directamente en el navegador (por ejemplo
+    views/estudiantes/index.php), la View lo redirige a index.php.
+    Sin esto, la pagina se veria sin estilos y llena de "Undefined variable",
+    porque las Views solo funcionan cuando el Controller les envia los datos.
+
   URL de ejemplo:
     http://localhost/mvc-sweetalert/index.php?action=crear
     http://localhost/mvc-sweetalert/index.php?action=editar&id=2
@@ -762,6 +861,12 @@ del Controller. Todo el trafico pasa por aqui.
 ─── index.php ──────────────────────────────────────────────────────────────────
 
 <?php
+
+// Marca que la peticion entro por el router: las vistas lo exigen
+define('DESDE_ROUTER', true);
+
+// La sesion guarda el token CSRF (en Laravel esto lo hace @csrf)
+session_start();
 
 require_once __DIR__ . '/controllers/EstudianteController.php';
 
@@ -809,6 +914,7 @@ Variables que llegan desde el Controller (ya sanitizadas):
   $estudiantes  array   Lista de estudiantes de la base de datos
   $status       string  'creado', 'editado', 'eliminado', 'error' o ''
   $mensaje      string  Texto descriptivo de la operacion
+  $csrf         string  Token de seguridad para el formulario de eliminar
 
 Librerias externas que se cargan en el <head>:
   Font Awesome 6  Iconos vectoriales (fa-solid fa-user-plus, etc.)
@@ -817,6 +923,14 @@ Librerias externas que se cargan en el <head>:
 
 ─── views/estudiantes/index.php ────────────────────────────────────────────────
 
+<?php
+// Las vistas solo se cargan a traves del router (index.php).
+// Si alguien abre este archivo directo en el navegador, lo enviamos a la aplicacion.
+if (!defined('DESDE_ROUTER')) {
+    header('Location: ../../index.php');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -843,24 +957,24 @@ Librerias externas que se cargan en el <head>:
 
         <table class="table">
             <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Nombre</th>
-                    <th>Email</th>
-                    <th>Ficha</th>
-                    <th>Acciones</th>
-                </tr>
+            <tr>
+                <th>#</th>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Ficha</th>
+                <th>Acciones</th>
+            </tr>
             </thead>
             <tbody>
-                <?php if (empty($estudiantes)): ?>
-                    <tr>
-                        <td colspan="5" class="empty-row">
-                            <i class="fa-solid fa-circle-info"></i>
-                            No hay estudiantes registrados.
-                        </td>
-                    </tr>
-                <?php else: ?>
-                    <?php foreach ($estudiantes as $est): ?>
+            <?php if (empty($estudiantes)): ?>
+                <tr>
+                    <td colspan="5" class="empty-row">
+                        <i class="fa-solid fa-circle-info"></i>
+                        No hay estudiantes registrados.
+                    </td>
+                </tr>
+            <?php else: ?>
+                <?php foreach ($estudiantes as $est): ?>
                     <tr>
                         <td><?php echo $est['id']; ?></td>
                         <td><?php echo htmlspecialchars($est['nombre']); ?></td>
@@ -876,28 +990,45 @@ Librerias externas que se cargan en el <head>:
                                    class="btn btn--warning btn--sm">
                                     <i class="fa-solid fa-pen-to-square"></i> Editar
                                 </a>
-                                <button class="btn btn--danger btn--sm"
-                                    onclick="confirmarEliminar(
-                                        <?php echo $est['id']; ?>,
-                                        '<?php echo addslashes($est['nombre']); ?>'
-                                    )">
+                                <!-- Los datos viajan en atributos data-* escapados,
+                                     no incrustados dentro del JavaScript -->
+                                <button type="button"
+                                        class="btn btn--danger btn--sm"
+                                        data-id="<?php echo (int) $est['id']; ?>"
+                                        data-nombre="<?php echo htmlspecialchars($est['nombre']); ?>"
+                                        onclick="confirmarEliminar(this)">
                                     <i class="fa-solid fa-trash"></i> Eliminar
                                 </button>
                             </div>
                         </td>
                     </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
             </tbody>
         </table>
 
     </div>
 </div>
 
+<!-- Formulario oculto: SweetAlert2 lo envia por POST al confirmar -->
+<form id="formEliminar" action="index.php?action=eliminar" method="POST" hidden>
+    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf); ?>">
+    <input type="hidden" name="id" id="eliminarId">
+</form>
+
 <script>
     // ── Mensajes flash desde el Controller ──────────────────────────────────
-    const status  = "<?php echo $status; ?>";
+    // json_encode() convierte el valor PHP en un string JavaScript seguro.
+    // NUNCA imprimir una variable PHP "a pelo" entre comillas dentro de un script.
+    const status  = <?php echo json_encode($status); ?>;
     const mensaje = <?php echo json_encode($mensaje); ?>;
+
+    // Evita que un nombre como <img onerror=...> se ejecute dentro de la alerta
+    function escaparHTML(texto) {
+        const div = document.createElement('div');
+        div.textContent = texto;
+        return div.innerHTML;
+    }
 
     const alertas = {
         creado:    { icon: 'success', title: 'Estudiante creado'  },
@@ -918,11 +1049,14 @@ Librerias externas que se cargan en el <head>:
     }
 
     // ── Confirmacion antes de eliminar ───────────────────────────────────────
-    function confirmarEliminar(id, nombre) {
+    function confirmarEliminar(boton) {
+        const id     = boton.dataset.id;
+        const nombre = boton.dataset.nombre;
+
         Swal.fire({
             icon:              'warning',
             title:             'Eliminar estudiante',
-            html:              `Seguro que deseas eliminar a <strong>${nombre}</strong>?
+            html:              `Seguro que deseas eliminar a <strong>${escaparHTML(nombre)}</strong>?
                                <br><small>Esta accion no se puede deshacer.</small>`,
             showCancelButton:  true,
             confirmButtonText: 'Si, eliminar',
@@ -931,7 +1065,8 @@ Librerias externas que se cargan en el <head>:
             cancelButtonColor: '#6c757d',
         }).then((result) => {
             if (result.isConfirmed) {
-                window.location.href = `index.php?action=eliminar&id=${id}`;
+                document.getElementById('eliminarId').value = id;
+                document.getElementById('formEliminar').submit();
             }
         });
     }
@@ -944,14 +1079,21 @@ Librerias externas que se cargan en el <head>:
 
   Notar en esta View:
     - htmlspecialchars() en cada dato que viene de la BD (protege contra XSS)
-    - addslashes() en el nombre dentro del onclick (evita romper las comillas JS)
-    - json_encode() para pasar el mensaje PHP a JavaScript de forma segura
+    - El boton Eliminar lleva el id y el nombre en atributos data-id y
+      data-nombre (escapados con htmlspecialchars), no incrustados en el JS
+    - escaparHTML() en JavaScript: el nombre se muestra dentro de la alerta
+      sin que un nombre como <img onerror=...> pueda ejecutarse
+    - Eliminar envia un formulario oculto por POST con el token CSRF;
+      no se usa window.location.href (eso seria GET)
+    - json_encode() para pasar $status y $mensaje de PHP a JavaScript de forma segura
     - El objeto "alertas" evita repetir if/else para cada tipo de mensaje
     - timer: undefined en errores hace que el usuario deba cerrar la alerta
 
   Preguntas de reflexion:
     - ?Que es XSS y como lo previene htmlspecialchars()?
     - ?Por que json_encode() es mejor que echo directo para variables JS?
+      Prueba la URL index.php?status=";alert(1)// con y sin json_encode().
+    - ?Por que eliminar usa un formulario POST y no un enlace?
     - ?Que significa result.isConfirmed en el .then() de SweetAlert2?
 
 
@@ -963,6 +1105,7 @@ Librerias externas que se cargan en el <head>:
 Variables que llegan desde el Controller:
   $status   string  'error' o ''
   $mensaje  string  Descripcion del error si lo hay
+  $csrf     string  Token de seguridad que viaja oculto en el formulario
 
 Validacion en dos capas:
   1. JavaScript (SweetAlert2): primera linea de defensa, antes de enviar
@@ -970,6 +1113,14 @@ Validacion en dos capas:
 
 ─── views/estudiantes/crear.php ────────────────────────────────────────────────
 
+<?php
+// Las vistas solo se cargan a traves del router (index.php).
+// Si alguien abre este archivo directo en el navegador, lo enviamos a la aplicacion.
+if (!defined('DESDE_ROUTER')) {
+    header('Location: ../../index.php');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -992,6 +1143,9 @@ Validacion en dos capas:
         </div>
 
         <form id="formCrear" action="index.php?action=guardar" method="POST">
+
+            <!-- Token CSRF: prueba que el formulario salio de nuestra pagina -->
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf); ?>">
 
             <div class="form-group">
                 <label>
@@ -1040,8 +1194,14 @@ Validacion en dos capas:
 
 <script>
     // Error devuelto por el Controller (validacion del servidor)
-    const status  = "<?php echo $status; ?>";
+    const status  = <?php echo json_encode($status); ?>;
     const mensaje = <?php echo json_encode($mensaje); ?>;
+
+    function escaparHTML(texto) {
+        const div = document.createElement('div');
+        div.textContent = texto;
+        return div.innerHTML;
+    }
 
     if (status === 'error') {
         Swal.fire({
@@ -1068,7 +1228,7 @@ Validacion en dos capas:
         Swal.fire({
             icon:              'question',
             title:             'Confirmar registro',
-            html:              `Se registrara a: <strong>${nombre}</strong>`,
+            html:              `Se registrara a: <strong>${escaparHTML(nombre)}</strong>`,
             showCancelButton:  true,
             confirmButtonText: 'Si, guardar',
             cancelButtonText:  'Revisar datos',
@@ -1107,6 +1267,7 @@ Variables que llegan desde el Controller:
   $estudiante  array   Datos actuales del estudiante (id, nombre, email, ficha)
   $status      string  'error' o ''
   $mensaje     string  Descripcion del error si lo hay
+  $csrf        string  Token de seguridad que viaja oculto en el formulario
 
 Diferencia con crear.php:
   - Los campos aparecen PRE-CARGADOS con los datos actuales del estudiante
@@ -1115,6 +1276,14 @@ Diferencia con crear.php:
 
 ─── views/estudiantes/editar.php ───────────────────────────────────────────────
 
+<?php
+// Las vistas solo se cargan a traves del router (index.php).
+// Si alguien abre este archivo directo en el navegador, lo enviamos a la aplicacion.
+if (!defined('DESDE_ROUTER')) {
+    header('Location: ../../index.php');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1137,6 +1306,9 @@ Diferencia con crear.php:
         </div>
 
         <form id="formEditar" action="index.php?action=actualizar" method="POST">
+
+            <!-- Token CSRF: prueba que el formulario salio de nuestra pagina -->
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf); ?>">
 
             <!-- Sin este campo el Controller no sabria que registro actualizar -->
             <input type="hidden"
@@ -1189,8 +1361,14 @@ Diferencia con crear.php:
 </div>
 
 <script>
-    const status  = "<?php echo $status; ?>";
+    const status  = <?php echo json_encode($status); ?>;
     const mensaje = <?php echo json_encode($mensaje); ?>;
+
+    function escaparHTML(texto) {
+        const div = document.createElement('div');
+        div.textContent = texto;
+        return div.innerHTML;
+    }
 
     if (status === 'error') {
         Swal.fire({
@@ -1215,7 +1393,7 @@ Diferencia con crear.php:
         Swal.fire({
             icon:              'question',
             title:             'Guardar cambios',
-            html:              `Se actualizaran los datos de <strong>${nombre}</strong>`,
+            html:              `Se actualizaran los datos de <strong>${escaparHTML(nombre)}</strong>`,
             showCancelButton:  true,
             confirmButtonText: 'Si, actualizar',
             cancelButtonText:  'Cancelar',
@@ -1288,6 +1466,18 @@ Lista de pruebas:
     Acceder a: http://localhost/mvc-sweetalert/index.php?action=hackerAtaque
     Resultado esperado: redireccion silenciosa al listado (sin error)
 
+  Prueba 7 — Eliminar por URL (GET)
+    Acceder a: http://localhost/mvc-sweetalert/index.php?action=eliminar&id=1
+    Resultado esperado: vuelve al listado y el estudiante 1 SIGUE existiendo
+
+  Prueba 8 — Abrir una View directamente
+    Acceder a: http://localhost/mvc-sweetalert/views/estudiantes/index.php
+    Resultado esperado: redirige a index.php y se ve la aplicacion con estilos
+
+  Prueba 9 — Email repetido
+    Crear un estudiante con un email que ya existe (ej: carlos@sena.edu.co)
+    Resultado esperado: alerta roja "El email ya puede estar en uso", sin Fatal error
+
 
 ════════════════════════════════════════════════════════════════════════════════
   DIAGRAMA DE FLUJO — CREAR UN ESTUDIANTE
@@ -1334,7 +1524,7 @@ Lista de pruebas:
                                   [Model::obtenerTodos()]
                                   [View: index.php]
                                       JavaScript lee status = 'creado'
-                                      SweetAlert2 muestra alerta verde ✓
+                                      SweetAlert2 muestra alerta verde
 
 
 ════════════════════════════════════════════════════════════════════════════════
@@ -1369,7 +1559,8 @@ Lista de pruebas:
   ──────────────────────────────
     Crear la accion 'eliminarAjax' en el Router y Controller.
     El Controller debe retornar JSON: echo json_encode(['ok' => true]).
-    Desde la View usar fetch() en lugar de window.location.href.
+    Desde la View usar fetch() (por POST y enviando el csrf_token)
+    en lugar de enviar el formulario oculto.
     Eliminar la fila de la tabla sin recargar la pagina.
     Mostrar SweetAlert2 de confirmacion con el resultado.
 
@@ -1432,6 +1623,13 @@ Lista de pruebas:
   CAUSA: El boton tiene type="submit" en lugar de type="button"
   SOLUCION: Cambiar a type="button". El envio lo controla JS con form.submit()
 
+  ERROR: Cannot modify header information - headers already sent
+  CAUSA: Algo se imprimio antes de header() o de session_start(). Lo mas comun
+         es una linea en blanco ANTES de "<?php" en algun archivo (por ejemplo
+         en config/Database.php), o un echo de prueba que quedo en el codigo.
+  SOLUCION: Revisar que todos los archivos PHP empiecen exactamente con "<?php"
+            en la primera linea, sin espacios ni lineas en blanco antes.
+
   ERROR: Pagina en blanco al guardar
   CAUSA: Falta exit despues del header('Location...')
   SOLUCION: Siempre escribir exit inmediatamente despues de header()
@@ -1440,15 +1638,25 @@ Lista de pruebas:
   CAUSA: Se uso echo $mensaje directamente en el JavaScript
   SOLUCION: Usar json_encode(): const mensaje = <?php echo json_encode($mensaje); ?>;
 
-  ERROR: La tabla aparece pero sin estilos
-  CAUSA: La ruta a app.css es incorrecta
-  SOLUCION: La ruta href="assets/css/app.css" es relativa al index.php raiz.
-            Verificar que la carpeta assets/css/ existe con el archivo dentro.
+  ERROR: La tabla aparece pero sin estilos (y con "Undefined variable")
+  CAUSA: Se abrio una View directamente (views/estudiantes/index.php) en lugar
+         de index.php. Pasa mucho con el boton "abrir en el navegador" de
+         PhpStorm o VS Code, que abre el archivo que se esta editando.
+  SOLUCION: Abrir siempre index.php. Con la proteccion DESDE_ROUTER la View
+            redirige sola. Si aun asi no hay estilos, verificar que exista
+            assets/css/app.css: la ruta es relativa al index.php raiz.
+
+  ERROR: "La sesion expiro. Recarga la pagina e intenta de nuevo."
+  CAUSA: El formulario no envio el token CSRF, o la sesion se cerro.
+  SOLUCION: Verificar que el formulario tenga
+            <input type="hidden" name="csrf_token" value="..."> y que
+            index.php llame a session_start() antes que todo.
 
   ERROR: Duplicate entry for key 'email'
   CAUSA: Se intento registrar un email que ya existe (columna UNIQUE)
-  SOLUCION: El Controller ya maneja esto con el mensaje "El email puede estar en uso"
-            Es el comportamiento correcto del sistema.
+  SOLUCION: El Model atrapa la PDOException (codigo 23000) y devuelve false;
+            el Controller muestra "El email puede estar en uso".
+            Si aparece como Fatal error, falta el try/catch en el Model.
 
 
 ════════════════════════════════════════════════════════════════════════════════
@@ -1462,6 +1670,8 @@ Lista de pruebas:
   Statement
   CRUD         Create, Read, Update, Delete — las 4 operaciones basicas
   XSS          Cross-Site Scripting — ataque que inyecta JS malicioso en HTML
+  CSRF         Cross-Site Request Forgery — otra pagina envia formularios a
+               nuestro sistema usando la sesion del usuario
   htmlspecialchars  Funcion PHP que escapa caracteres HTML para prevenir XSS
   json_encode  Funcion PHP que convierte datos a formato JSON seguro para JS
   urlencode    Funcion PHP que codifica texto para usarlo en una URL

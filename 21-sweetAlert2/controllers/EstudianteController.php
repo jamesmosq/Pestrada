@@ -38,6 +38,12 @@ class EstudianteController
             return;
         }
 
+        if (!$this->csrfValido()) {
+            $this->redirigir('crear', 'error',
+                urlencode('La sesion expiro. Recarga la pagina e intenta de nuevo.'));
+            return;
+        }
+
         $nombre = trim($_POST['nombre'] ?? '');
         $email  = trim($_POST['email']  ?? '');
         $ficha  = trim($_POST['ficha']  ?? '');
@@ -106,9 +112,21 @@ class EstudianteController
         $email  = trim($_POST['email']    ?? '');
         $ficha  = trim($_POST['ficha']    ?? '');
 
+        if (!$this->csrfValido()) {
+            $this->redirigir('editar', 'error',
+                urlencode('La sesion expiro. Recarga la pagina e intenta de nuevo.'), $id);
+            return;
+        }
+
         if ($id <= 0 || empty($nombre) || empty($email)) {
             $this->redirigir('editar', 'error',
                 urlencode('Datos incompletos.'), $id);
+            return;
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->redirigir('editar', 'error',
+                urlencode('El formato del email no es valido.'), $id);
             return;
         }
 
@@ -127,10 +145,22 @@ class EstudianteController
         }
     }
 
-    // ── Eliminar estudiante ──────────────────────────────────────────────────
+    // ── Eliminar estudiante (POST) ───────────────────────────────────────────
+    // Se elimina por POST, nunca por GET: un simple enlace no debe poder borrar datos.
     public function eliminar(): void
     {
-        $id = intval($_GET['id'] ?? 0);
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirigir('index');
+            return;
+        }
+
+        if (!$this->csrfValido()) {
+            $this->redirigir('index', 'error',
+                urlencode('La sesion expiro. Recarga la pagina e intenta de nuevo.'));
+            return;
+        }
+
+        $id = intval($_POST['id'] ?? 0);
 
         if ($id <= 0) {
             $this->redirigir('index', 'error', urlencode('ID no valido.'));
@@ -159,8 +189,10 @@ class EstudianteController
     // ════════════════════════════════════════════════════════════════════════
 
     // Carga el archivo de vista y le inyecta variables mediante extract()
+    // Todas las vistas reciben $csrf para incluirlo en sus formularios.
     private function cargarVista(string $vista, array $datos = []): void
     {
+        $datos['csrf'] = $this->csrfToken();
         extract($datos);
         require __DIR__ . "/../views/{$vista}.php";
     }
@@ -178,5 +210,22 @@ class EstudianteController
         if ($id > 0)  $url .= "&id={$id}";
         header("Location: {$url}");
         exit;
+    }
+
+    // Genera (una sola vez por sesion) el token CSRF
+    private function csrfToken(): string
+    {
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+
+    // Comprueba que el formulario envio el mismo token que guarda la sesion
+    private function csrfValido(): bool
+    {
+        $token = $_POST['csrf_token'] ?? '';
+        return isset($_SESSION['csrf_token'])
+            && hash_equals($_SESSION['csrf_token'], $token);
     }
 }

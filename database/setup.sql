@@ -7,6 +7,7 @@
 CREATE DATABASE IF NOT EXISTS tareas_crud CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE DATABASE IF NOT EXISTS todo_list CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE DATABASE IF NOT EXISTS login_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS sena_mvc CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- ============================================
 -- BASE DE DATOS: tareas_crud
@@ -99,21 +100,42 @@ CREATE TABLE IF NOT EXISTS sesiones (
 
 -- Usuario de ejemplo (password: 'admin123' hasheado con password_hash)
 -- IMPORTANTE: Cambiar en producción
-INSERT INTO usuarios (username, email, password, nombre_completo) VALUES
-('admin', 'admin@pestrada.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrador'),
-('usuario1', 'usuario1@pestrada.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Usuario Demo');
+INSERT IGNORE INTO usuarios (username, email, password, nombre_completo) VALUES
+('admin', 'admin@pestrada.com', '$2y$10$TNSJ0cdliQafrmAkDpV4/u02oya.0d7KXC6EJCsgNqLytzxxjEPke', 'Administrador'),
+('usuario1', 'usuario1@pestrada.com', '$2y$10$TNSJ0cdliQafrmAkDpV4/u02oya.0d7KXC6EJCsgNqLytzxxjEPke', 'Usuario Demo');
+
+-- ============================================
+-- BASE DE DATOS: sena_mvc
+-- Para 21-sweetAlert2 (MVC + SweetAlert2)
+-- ============================================
+
+USE sena_mvc;
+
+CREATE TABLE IF NOT EXISTS estudiantes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    ficha VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO estudiantes (nombre, email, ficha) VALUES
+('Carlos Perez', 'carlos@sena.edu.co', '2758634'),
+('Laura Gomez',  'laura@sena.edu.co',  '2758634'),
+('Andres Rios',  'andres@sena.edu.co', '2812045');
 
 -- ============================================
 -- Verificación de las tablas creadas
 -- ============================================
 
 -- Ver todas las bases de datos creadas
-SHOW DATABASES LIKE '%crud%' OR LIKE '%todo%' OR LIKE '%login%';
+SHOW DATABASES;
 
 -- ============================================
 -- Notas importantes:
 -- ============================================
 -- 1. El password por defecto para los usuarios de ejemplo es: admin123
+--    (hash generado con password_hash('admin123', PASSWORD_DEFAULT))
 -- 2. En producción, asegúrate de cambiar las contraseñas
 -- 3. Usa siempre password_hash() para hashear contraseñas en PHP
 -- 4. Este script es idempotente (puede ejecutarse múltiples veces)

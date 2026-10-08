@@ -21,8 +21,9 @@ echo "<hr>";
 // str_repeat - repetir una cadena
 echo str_repeat("=-", 15) . "<br>";
 
-// str_reverse - invertir la cadena
-echo strrev("PHP") . "<br>";            // PHP
+// strrev - invertir la cadena
+echo strrev("Hola") . "<br>";           // aloH
+echo strrev("PHP") . "<br>";            // PHP (se lee igual al revés: es un palíndromo)
 
 // str_word_count - contar palabras
 echo str_word_count("Hola Mundo PHP") . "<br>"; // 3

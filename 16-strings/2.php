@@ -3,9 +3,19 @@
 
 $frase = "Me gusta programar en PHP y PHP es genial";
 
-// strpos - posición de la primera aparición (-1 si no existe)
+// strpos - posición de la primera aparición (empieza a contar en 0).
+// Si NO la encuentra devuelve false (no -1 como en JavaScript).
 $pos = strpos($frase, "PHP");
 echo "Primera aparición de PHP en posición: $pos<br>"; // 22
+
+// Cuidado: si el texto está al inicio, strpos devuelve 0, y 0 se evalúa como falso.
+// Por eso SIEMPRE se compara con !== false
+if (strpos($frase, "Me") !== false) {
+    echo "'Me' sí está en la frase (en la posición 0)<br>";
+}
+if (strpos($frase, "Java") === false) {
+    echo "'Java' no está en la frase<br>";
+}
 
 // strrpos - última aparición
 echo "Última aparición de PHP en posición: " . strrpos($frase, "PHP") . "<br>";

@@ -23,7 +23,7 @@ $nombre = 'Manolo'; // Texto. Puede ser con comillas simples o dobles (String)
 $edad = 31; // Enteros (Integer)
 $altura = 1.72; // Decimales, usando el punto en lugar de la coma (Float)
 $mayorEdad = True; // Verdad o mentira (Boolean)
-
+echo $nombre;
 ?>
 </body>
 </html>

@@ -27,20 +27,23 @@ class TodoController {
         include 'views/add_todo.php';
     }
 
-    public function toggle($id) {
-        $this->todoItem->id = $id;
-        $this->todoItem->is_completed = ($_GET['status'] == '1') ? 0 : 1;
-        if ($this->todoItem->update()) {
-            header("Location: index.php");
-            exit();
+    // Las acciones que modifican datos solo se aceptan por POST
+    public function toggle() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'], $_POST['status'])) {
+            $this->todoItem->id = (int) $_POST['id'];
+            $this->todoItem->is_completed = ($_POST['status'] == '1') ? 0 : 1;
+            $this->todoItem->updateStatus();
         }
+        header("Location: index.php");
+        exit();
     }
 
-    public function delete($id) {
-        $this->todoItem->id = $id;
-        if ($this->todoItem->delete()) {
-            header("Location: index.php");
-            exit();
+    public function delete() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
+            $this->todoItem->id = (int) $_POST['id'];
+            $this->todoItem->delete();
         }
+        header("Location: index.php");
+        exit();
     }
 }

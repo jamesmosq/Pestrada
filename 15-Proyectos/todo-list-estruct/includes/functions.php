@@ -15,7 +15,7 @@ function addTodo($conn, $task) {
     $query = "INSERT INTO todos (task, is_completed) VALUES (:task, :is_completed)";
     $stmt = $conn->prepare($query);
     $stmt->bindParam(":task", $task);
-    $is_completed = false;
+    $is_completed = 0; // un entero, no false: MySQL espera un numero en esta columna
     $stmt->bindParam(":is_completed", $is_completed);
     return $stmt->execute();
 }

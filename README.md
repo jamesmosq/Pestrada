@@ -1,254 +1,156 @@
 # Pestrada - Curso PHP
 
-Repositorio educativo para aprender PHP desde cero hasta nivel intermedio-avanzado, incluyendo programación orientada a objetos y desarrollo de aplicaciones web completas.
+Repositorio educativo para aprender PHP desde cero hasta construir una aplicación MVC con base de datos,
+como paso previo a Laravel.
 
-## Estructura del Proyecto
+## Estructura del proyecto
 
 ```
-Pestrada_/
-├── 01-introPHP/           # Introducción básica a PHP
-├── 02-variables/          # Variables y tipos de datos
-├── 03-operadores/         # Operadores aritméticos y lógicos
-├── 04-condicionales/      # Estructuras condicionales (if, else, switch)
-├── 05-arrays/             # Arrays indexados y asociativos
-├── 06-ciclos/             # Bucles (for, while, foreach)
-├── 07-funciones/          # Definición y uso de funciones
-├── 08-superglobales/      # Variables superglobales ($_GET, $_POST, etc.)
-├── 09-clases/             # Programación Orientada a Objetos
-├── 10-ejemplos/           # Ejemplos prácticos
-├── 11-miniproyecto/       # Miniproyecto con base de datos
-├── 12-sesion/             # Gestión de sesiones PHP
-├── 13-taller/             # Ejercicios y talleres
-├── 14-Investigacion/      # Documentos de investigación
-├── 15-Proyectos/          # Proyectos completos finales
-├── config.php             # Configuración centralizada
-└── README.md              # Este archivo
+Pestrada/
+├── 01-introPHP/                 # Sintaxis básica, echo, comentarios
+├── 02-variables/                # Variables y tipos de datos
+├── 03-operadores/               # Operadores aritméticos, de comparación y lógicos
+├── 04-condicionales/            # if / else / switch (+ primer formulario)
+├── 05-arrays/                   # Arrays indexados y asociativos
+├── 06-ciclos/                   # for, while, foreach, break, continue
+├── 07-funciones/                # Funciones, parámetros y retorno
+├── 08-superglobales/            # $_GET, $_POST, $_SERVER
+├── 09-clases/                   # Programación orientada a objetos
+├── 10-ejemplos/                 # Ejemplos prácticos (calculadora, libros)
+├── 11-miniproyecto/             # Login básico con base de datos
+├── 12-sesion/                   # Sesiones, login seguro con CSRF
+├── 13-taller/                   # Talleres (GET/POST, herencia)
+├── 14-Investigacion/            # Documentos de investigación
+├── 15-Proyectos/                # CRUD de tareas y Todo List (estructural y POO)
+├── 16-strings/                  # Funciones de texto          + EJERCICIOS.md
+├── 17-fechas/                   # date, strtotime, DateTime   + EJERCICIOS.md
+├── 18-errores/                  # Excepciones                 + EJERCICIOS.md
+├── 19-archivos/                 # Leer y escribir archivos    + EJERCICIOS.md
+├── 20-formularios-validacion/   # Formularios y validación    + EJERCICIOS.md
+├── 21-sweetAlert2/              # CRUD MVC con SweetAlert2    + EJERCICIOS.md
+├── soluciones/                  # Soluciones de los ejercicios 16-21
+├── database/setup.sql           # Crea todas las bases de datos del curso
+├── config.example.php           # Plantilla de configuración (copiar como config.php)
+└── helpers.php                  # Funciones auxiliares opcionales
 ```
 
-## Requisitos del Sistema
+## Requisitos
 
-- PHP 7.4 o superior (recomendado PHP 8.x)
-- MySQL 5.7 o superior / MariaDB 10.x
-- Servidor web (Apache/Nginx) o WAMP/XAMPP/MAMP
-- Extensiones PHP necesarias:
-  - PDO
-  - MySQLi
-  - Session
+- WAMP (o XAMPP) con PHP 8.1 o superior y MySQL / MariaDB
+- Extensiones de PHP: `pdo_mysql` y `mbstring` (vienen activas en WAMP)
+- Un editor: PhpStorm o VS Code
 
 ## Instalación
 
-### 1. Clonar el repositorio
+### 1. Clonar el repositorio dentro de `www`
 
 ```bash
-git clone https://github.com/tu-usuario/Pestrada_.git
-cd Pestrada_
+cd C:\wamp64\www
+git clone <url-del-repositorio> Pestrada
 ```
 
-### 2. Configurar la base de datos
+### 2. Crear la configuración
 
-Importa los archivos SQL ubicados en la carpeta `database/`:
-
-```bash
-mysql -u root -p < database/setup.sql
-```
-
-O importa manualmente cada base de datos según el proyecto:
-- `tareas_crud.sql` - Para el CRUD de tareas
-- `todo_list.sql` - Para la lista de tareas
-- `login_db.sql` - Para el sistema de login
-
-### 3. Configurar conexión a base de datos
-
-Edita el archivo `config.php` y ajusta las credenciales:
+Copia `config.example.php` y renómbralo como `config.php`. Ábrelo y pon la contraseña de **tu** MySQL:
 
 ```php
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', 'tu_password');
+define('DB_PASS', '');   // en WAMP suele estar vacía
 ```
 
-### 4. Iniciar el servidor
+`config.php` no se sube al repositorio (está en `.gitignore`): cada persona tiene su propia contraseña.
 
-Si usas el servidor PHP integrado:
+### 3. Crear las bases de datos
 
-```bash
-php -S localhost:8000
-```
+En phpMyAdmin (`http://localhost/phpmyadmin`) ve a la pestaña **Importar** y selecciona `database/setup.sql`.
+Se crean cuatro bases de datos:
 
-O configura tu servidor WAMP/XAMPP apuntando a esta carpeta.
+| Base de datos | La usan |
+|---|---|
+| `tareas_crud` | `15-Proyectos/CRUD` |
+| `todo_list` | `15-Proyectos/todo-list-estruct` y `todo-list-poo` |
+| `login_db` | `11-miniproyecto` y `12-sesion` |
+| `sena_mvc` | `21-sweetAlert2` |
 
-## Contenido del Curso
+Usuario de prueba para los login: **admin** / **admin123**.
 
-### Nivel Básico (01-08)
+### 4. Abrir el proyecto
 
-**Módulo 1-2: Introducción**
-- Sintaxis básica de PHP
-- Variables y tipos de datos
-- Echo y print
+- **Con WAMP:** enciende WAMP y entra a `http://localhost/Pestrada/`.
+- **Con PhpStorm:** abre el archivo `.php` y usa el botón del navegador que aparece arriba a la derecha.
 
-**Módulo 3-4: Operadores y Condicionales**
-- Operadores aritméticos, lógicos y de comparación
-- Estructuras if/else/elseif
-- Switch case
+> En los proyectos con MVC (`15-Proyectos/todo-list-poo`, `21-sweetAlert2`) abre siempre el `index.php`
+> de la carpeta, **nunca** un archivo de `views/`. Las vistas solo funcionan cuando las carga el controlador.
 
-**Módulo 5-6: Arrays y Ciclos**
-- Arrays indexados y asociativos
-- Bucles for, while, foreach
-- Break y continue
+## Proyectos
 
-**Módulo 7-8: Funciones y Formularios**
-- Definición de funciones
-- Parámetros y valores de retorno
-- Manejo de formularios GET/POST
+### 15-Proyectos/CRUD — CRUD de tareas
+Crear, listar, editar y eliminar tareas. PDO con consultas preparadas, Bootstrap 4 e `include` de
+cabecera y pie. Mensajes de confirmación guardados en la sesión.
 
-### Nivel Intermedio (09-13)
+### 15-Proyectos/todo-list-estruct — Todo List estructural
+La misma idea organizada con funciones (`includes/functions.php`) y vistas separadas.
 
-**Módulo 9: POO - Clases y Objetos**
-- Definición de clases
-- Propiedades y métodos
-- Encapsulación (public, private, protected)
-- Constructores y destructores
-- Herencia
+### 15-Proyectos/todo-list-poo — Todo List con POO
+Clases `Database`, `TodoItem` (modelo) y `TodoController`: primer acercamiento a MVC.
 
-**Módulo 10-13: Aplicaciones Prácticas**
-- Calculadora web
-- Sistemas de login
-- Gestión de sesiones
-- CRUD básico con bases de datos
+### 21-sweetAlert2 — CRUD de estudiantes con MVC
+Router (`index.php`) con lista blanca de acciones, controlador, modelo con PDO y vistas.
+Alertas con SweetAlert2, eliminación por POST y protección CSRF. Es la base conceptual de Laravel.
+Su manual paso a paso está en `21-sweetAlert2/manual_sweetalert2_mvc.txt`.
 
-### Nivel Avanzado (15-Proyectos)
+## Ejercicios resueltos para analizar
 
-#### Proyecto 1: CRUD de Tareas
-Aplicación completa para gestionar tareas con:
-- Listado de tareas
-- Crear, editar y eliminar tareas
-- Bootstrap para interfaz
-- MySQLi con prepared statements
+Algunos módulos tienen una carpeta `resueltos/` con ejercicios pensados para **leer, ejecutar y explicar**
+antes de practicar solos. Hay cinco tipos: resuelto y comentado, predice la salida, encuentra el error,
+compara soluciones y sigue el recorrido. Cada carpeta tiene un `README.md` con el orden recomendado.
 
-**Archivos principales:**
-- `15-Proyectos/CRUD/index.php`
-- `15-Proyectos/CRUD/db.php`
+| Módulo | Carpeta |
+|---|---|
+| 04 Condicionales | `04-condicionales/resueltos/` |
+| 05 Arrays | `05-arrays/resueltos/` |
+| 06 Ciclos | `06-ciclos/resueltos/` |
+| 07 Funciones | `07-funciones/resueltos/` |
+| 08 Superglobales | `08-superglobales/resueltos/` |
+| 09 Clases | `09-clases/resueltos/` |
+| 12 Sesión | `12-sesion/resueltos/` |
+| 15 Proyectos | `15-Proyectos/resueltos/` |
+| 13 Talleres | `13-taller/resueltos/` (modelos de sustentación con rúbrica) |
 
-#### Proyecto 2: Todo List Estructural
-Lista de tareas con arquitectura estructural:
-- Separación de funciones y vistas
-- PDO para base de datos
-- Funciones reutilizables
+Orden sugerido en cada módulo: **ejemplos → resueltos → ejercicios → soluciones**.
 
-**Archivos principales:**
-- `15-Proyectos/todo-list-estruct/index.php`
-- `15-Proyectos/todo-list-estruct/includes/`
+## Ejercicios y soluciones
 
-#### Proyecto 3: Todo List POO (Patrón MVC)
-Lista de tareas con arquitectura orientada a objetos:
-- Patrón MVC (Model-View-Controller)
-- Clase Database para conexión
-- Modelo TodoItem con operaciones CRUD
-- Controller para lógica de negocio
+Los módulos 16 a 21 tienen un `EJERCICIOS.md` con 12 ejercicios cada uno, en tres niveles
+(básico, intermedio y reto). Las soluciones están en [`soluciones/`](soluciones/README.md).
 
-**Archivos principales:**
-- `15-Proyectos/todo-list-poo/config/Database.php`
-- `15-Proyectos/todo-list-poo/models/TodoItem.php`
-- `15-Proyectos/todo-list-poo/controllers/TodoController.php`
-- `15-Proyectos/todo-list-poo/views/`
+La idea es **practicar de manera consciente**: intentar cada ejercicio primero y usar la solución para
+comparar, no para copiar.
 
-## Mejores Prácticas Implementadas
+El módulo 21 es el proyecto del fin de semana: los ejercicios se acumulan hasta tener buscador, paginación,
+mensajes en sesión y un segundo módulo relacionado. El resultado completo está en `soluciones/21-proyecto-final/`.
 
-### Seguridad
-- Prepared statements para prevenir inyección SQL
-- Escapado de HTML con `htmlspecialchars()`
-- Validación de entrada de usuarios
-- Sesiones seguras con httponly cookies
-- Manejo de errores con try-catch
+## Buenas prácticas que se aplican en el curso
 
-### Arquitectura
-- Separación de responsabilidades
-- Patrón MVC en proyectos avanzados
-- Reutilización de código
-- Configuración centralizada
+- Consultas preparadas con PDO para evitar inyección SQL.
+- `htmlspecialchars()` en todo dato que se imprime en HTML (y `json_encode()` dentro de `<script>`).
+- Contraseñas con `password_hash()` / `password_verify()`.
+- Las acciones que modifican datos (guardar, editar, eliminar) solo se aceptan por POST.
+- Token CSRF en los formularios (`12-sesion`, `21-sweetAlert2`).
+- Credenciales fuera del código, en `config.php`.
 
-### Base de Datos
-- PDO con prepared statements
-- MySQLi con bind_param
-- Manejo de excepciones
-- Conexiones seguras
+## Solución de problemas
 
-## Uso de los Proyectos
+| Problema | Causa probable |
+|---|---|
+| `Access denied for user 'root'` | La contraseña de `config.php` no es la de tu MySQL. |
+| `Unknown database` o `Table ... doesn't exist` | Falta importar `database/setup.sql`. |
+| `Failed opening required ... config.php` | Falta copiar `config.example.php` como `config.php`. |
+| `Headers already sent` | Hay un espacio, una línea en blanco o un `echo` antes de `header()` o de `session_start()`. |
+| La página se ve sin estilos y con *Undefined variable* | Se abrió una vista (`views/...`) en lugar del `index.php`. |
+| Un ejemplo dice "se ejecuta en la consola" (`06-ciclos/while/1.php`, `15-Proyectos/CRUD/D.PHP`) | Lee del teclado con `readline()` o `STDIN`: ejecútalo con `php archivo.php` en la terminal. |
 
-### CRUD de Tareas
+## Recursos
 
-```bash
-# Navega a:
-http://localhost/Pestrada_/15-Proyectos/CRUD/
-```
-
-**Funcionalidades:**
-- Ver lista de tareas
-- Agregar nueva tarea
-- Editar tarea existente
-- Eliminar tarea
-
-### Todo List POO
-
-```bash
-# Navega a:
-http://localhost/Pestrada_/15-Proyectos/todo-list-poo/
-```
-
-**Funcionalidades:**
-- Agregar tareas
-- Marcar como completadas
-- Eliminar tareas
-- Arquitectura MVC completa
-
-## Estructura de Base de Datos
-
-### tareas_crud
-
-```sql
-CREATE TABLE tareas (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    titulo VARCHAR(255) NOT NULL,
-    descripcion TEXT,
-    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### todo_list
-
-```sql
-CREATE TABLE todos (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    task VARCHAR(255) NOT NULL,
-    is_completed BOOLEAN DEFAULT 0
-);
-```
-
-## Recursos de Aprendizaje
-
-- [PHP.net - Documentación oficial](https://www.php.net/manual/es/)
-- [W3Schools PHP Tutorial](https://www.w3schools.com/php/)
-- [PHP The Right Way](https://phptherightway.com/)
-
-## Contribuir
-
-Este es un proyecto educativo. Si encuentras errores o quieres mejorar algo:
-
-1. Fork el proyecto
-2. Crea una rama (`git checkout -b feature/mejora`)
-3. Commit tus cambios (`git commit -m 'Agregar mejora'`)
-4. Push a la rama (`git push origin feature/mejora`)
-5. Abre un Pull Request
-
-## Licencia
-
-Este proyecto es de código abierto y está disponible para propósitos educativos.
-
-## Contacto
-
-Para preguntas o sugerencias, abre un issue en el repositorio.
-
----
-
-**Última actualización:** 2025-10-27
-**Versión:** 1.0.0
+- [Manual oficial de PHP (español)](https://www.php.net/manual/es/)
+- [PHP: The Right Way](https://phptherightway.com/)
+- [SweetAlert2](https://sweetalert2.github.io/)

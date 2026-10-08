@@ -1,109 +1,79 @@
 # Configuración de Base de Datos
 
-Esta carpeta contiene los scripts SQL necesarios para configurar las bases de datos del proyecto.
+Esta carpeta contiene `setup.sql`, el script que crea **todas** las bases de datos del curso con sus tablas
+y datos de ejemplo.
 
-## Archivos
+## Instalación
 
-- `setup.sql` - Script principal que crea todas las bases de datos y tablas
-- `tareas_crud.sql` - Solo la base de datos del CRUD de tareas
-- `todo_list.sql` - Solo la base de datos de la lista de tareas
-- `login_db.sql` - Solo la base de datos del sistema de login
+### Opción 1: phpMyAdmin (recomendada)
 
-## Instalación Rápida
+1. Abre phpMyAdmin: `http://localhost/phpmyadmin`
+2. Ve a la pestaña **Importar**
+3. Selecciona el archivo `database/setup.sql`
+4. Haz clic en **Continuar**
 
-### Opción 1: Importar todo de una vez
-
-```bash
-mysql -u root -p < setup.sql
-```
-
-### Opción 2: Importar por separado
+### Opción 2: consola de MySQL
 
 ```bash
-mysql -u root -p < tareas_crud.sql
-mysql -u root -p < todo_list.sql
-mysql -u root -p < login_db.sql
+mysql -u root -p < database/setup.sql
 ```
 
-### Opción 3: Usando phpMyAdmin
+Después, revisa que `config.php` (en la raíz) tenga la contraseña correcta de tu MySQL.
+Si no existe, copia `config.example.php` como `config.php`.
 
-1. Abre phpMyAdmin en tu navegador
-2. Ve a la pestaña "Importar"
-3. Selecciona el archivo `setup.sql`
-4. Haz clic en "Continuar"
+## Bases de datos que se crean
 
-## Bases de Datos Creadas
+| Base de datos | Tablas | La usan | Constante en `config.php` |
+|---|---|---|---|
+| `tareas_crud` | `tareas` | `15-Proyectos/CRUD` | `DB_NAME_TAREAS` |
+| `todo_list` | `todos` | `15-Proyectos/todo-list-estruct` y `todo-list-poo` | `DB_NAME_TODO` |
+| `login_db` | `usuarios`, `sesiones` | `11-miniproyecto` y `12-sesion` | `DB_NAME_LOGIN` |
+| `sena_mvc` | `estudiantes` | `21-sweetAlert2` | `DB_NAME_MVC` |
 
-### 1. tareas_crud
-Base de datos para el proyecto CRUD de tareas.
+Uso desde PHP:
 
-**Tablas:**
-- `tareas` - Almacena las tareas con título, descripción, estado y prioridad
-
-**Uso:**
 ```php
-require_once 'config.php';
+require_once __DIR__ . '/../config.php';   // ajusta la ruta según la carpeta
 $db = getDBConnection(DB_NAME_TAREAS);
 ```
 
-### 2. todo_list
-Base de datos para el proyecto Todo List (POO y Estructural).
+### Otros scripts SQL del curso
 
-**Tablas:**
-- `todos` - Almacena las tareas con descripción y estado de completado
+| Archivo | Para qué |
+|---|---|
+| `11-miniproyecto/bd` | Crea solo `login_db` con el usuario admin (la misma estructura que `setup.sql`) |
+| `soluciones/21-proyecto-final/migracion.sql` | Agrega `telefono`, la tabla `cursos` y `curso_id` a `sena_mvc` para el proyecto final del módulo 21 |
 
-**Uso:**
-```php
-require_once 'config.php';
-$db = getDBConnection(DB_NAME_TODO);
-```
+## Usuarios de prueba (`login_db`)
 
-### 3. login_db
-Base de datos para el sistema de autenticación.
+| Usuario | Email | Contraseña |
+|---|---|---|
+| admin | admin@pestrada.com | admin123 |
+| usuario1 | usuario1@pestrada.com | admin123 |
 
-**Tablas:**
-- `usuarios` - Información de usuarios registrados
-- `sesiones` - Gestión avanzada de sesiones (opcional)
+Las contraseñas están guardadas con `password_hash()`. Para el login se comparan con `password_verify()`.
 
-**Uso:**
-```php
-require_once 'config.php';
-$db = getDBConnection(DB_NAME_LOGIN);
-```
+> No uses la función `PASSWORD()` de MySQL para crear contraseñas: ya no existe en MySQL 8 y su resultado
+> no es compatible con `password_verify()` de PHP.
 
-## Usuarios de Prueba
+## Cambiar una contraseña
 
-### Usuario Administrador
-- **Username:** admin
-- **Email:** admin@pestrada.com
-- **Password:** admin123
-
-### Usuario Demo
-- **Username:** usuario1
-- **Email:** usuario1@pestrada.com
-- **Password:** admin123
-
-## Cambiar Contraseñas
-
-Para crear un hash de contraseña en PHP:
+Genera el hash en PHP:
 
 ```php
 <?php
-$password = 'tu_nueva_contraseña';
-$hash = password_hash($password, PASSWORD_DEFAULT);
-echo $hash;
-?>
+echo password_hash('tu_nueva_contraseña', PASSWORD_DEFAULT);
 ```
 
-Luego actualiza la base de datos:
+Y actualiza la base de datos:
 
 ```sql
 UPDATE usuarios SET password = 'hash_generado' WHERE username = 'admin';
 ```
 
-## Estructura de Tablas
+## Estructura de las tablas
 
-### Tabla: tareas
+### `tareas` (tareas_crud)
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
@@ -115,18 +85,18 @@ UPDATE usuarios SET password = 'hash_generado' WHERE username = 'admin';
 | fecha_creacion | TIMESTAMP | Fecha de creación |
 | fecha_actualizacion | TIMESTAMP | Última actualización |
 
-### Tabla: todos
+### `todos` (todo_list)
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
 | id | INT | ID autoincremental |
-| task | VARCHAR(255) | Descripción de la tarea |
+| task | VARCHAR(255) | Texto de la tarea |
 | description | TEXT | Descripción extendida |
-| is_completed | BOOLEAN | Estado completado (0/1) |
+| is_completed | BOOLEAN | Completada (0/1) |
 | created_at | TIMESTAMP | Fecha de creación |
 | completed_at | TIMESTAMP | Fecha de completado |
 
-### Tabla: usuarios
+### `usuarios` (login_db)
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
@@ -139,39 +109,36 @@ UPDATE usuarios SET password = 'hash_generado' WHERE username = 'admin';
 | ultimo_acceso | TIMESTAMP | Último inicio de sesión |
 | activo | BOOLEAN | Estado de la cuenta |
 
-## Respaldo y Restauración
+### `estudiantes` (sena_mvc)
 
-### Crear respaldo
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| id | INT | ID autoincremental |
+| nombre | VARCHAR(100) | Nombre completo |
+| email | VARCHAR(100) | Email único |
+| ficha | VARCHAR(20) | Número de ficha |
+| created_at | TIMESTAMP | Fecha de registro |
+
+## Ejecutar el script más de una vez
+
+Las bases de datos y las tablas se crean con `IF NOT EXISTS`, y los usuarios y estudiantes de ejemplo con
+`INSERT IGNORE`, así que no fallan ni se duplican. Las **tareas** y los **todos** de ejemplo sí se vuelven a
+insertar cada vez: si ejecutas el script dos veces, aparecerán repetidos.
+
+## Respaldo y restauración
 
 ```bash
-# Respaldar todas las bases de datos
-mysqldump -u root -p --databases tareas_crud todo_list login_db > backup.sql
+# Respaldar todas las bases de datos del curso
+mysqldump -u root -p --databases tareas_crud todo_list login_db sena_mvc > backup.sql
 
-# Respaldar una sola base de datos
-mysqldump -u root -p tareas_crud > backup_tareas.sql
-```
-
-### Restaurar desde respaldo
-
-```bash
+# Restaurar
 mysql -u root -p < backup.sql
 ```
 
-## Solución de Problemas
+## Solución de problemas
 
-### Error: "Access denied for user 'root'@'localhost'"
-Verifica tu contraseña de MySQL en el archivo `config.php`
-
-### Error: "Unknown database"
-Asegúrate de haber ejecutado el script `setup.sql` primero
-
-### Error: "Table already exists"
-El script es idempotente, usa `IF NOT EXISTS` para evitar errores
-
-## Seguridad
-
-- Nunca compartas las contraseñas en el repositorio
-- Usa variables de entorno para credenciales en producción
-- Cambia las contraseñas por defecto
-- Usa HTTPS en producción
-- Mantén PHP y MySQL actualizados
+| Error | Solución |
+|---|---|
+| `Access denied for user 'root'@'localhost'` | La contraseña en `config.php` no coincide con la de tu MySQL. |
+| `Unknown database` | Falta importar `setup.sql`. |
+| `Table ... doesn't exist` | Falta importar `setup.sql` (o, en el proyecto final del 21, `migracion.sql`). |

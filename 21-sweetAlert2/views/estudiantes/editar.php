@@ -1,3 +1,11 @@
+<?php
+// Las vistas solo se cargan a traves del router (index.php).
+// Si alguien abre este archivo directo en el navegador, lo enviamos a la aplicacion.
+if (!defined('DESDE_ROUTER')) {
+    header('Location: ../../index.php');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -20,6 +28,9 @@
         </div>
 
         <form id="formEditar" action="index.php?action=actualizar" method="POST">
+
+            <!-- Token CSRF: prueba que el formulario salio de nuestra pagina -->
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf); ?>">
 
             <!-- Sin este campo el Controller no sabria que registro actualizar -->
             <input type="hidden"
@@ -72,8 +83,14 @@
 </div>
 
 <script>
-    const status  = "<?php echo $status; ?>";
+    const status  = <?php echo json_encode($status); ?>;
     const mensaje = <?php echo json_encode($mensaje); ?>;
+
+    function escaparHTML(texto) {
+        const div = document.createElement('div');
+        div.textContent = texto;
+        return div.innerHTML;
+    }
 
     if (status === 'error') {
         Swal.fire({
@@ -98,7 +115,7 @@
         Swal.fire({
             icon:              'question',
             title:             'Guardar cambios',
-            html:              `Se actualizaran los datos de <strong>${nombre}</strong>`,
+            html:              `Se actualizaran los datos de <strong>${escaparHTML(nombre)}</strong>`,
             showCancelButton:  true,
             confirmButtonText: 'Si, actualizar',
             cancelButtonText:  'Cancelar',

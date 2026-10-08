@@ -1,14 +1,19 @@
-
 <?php
+// IMPORTANTE: no dejar lineas en blanco antes de "<?php".
+// Cualquier salida antes de header() provoca "headers already sent".
+
+// Las credenciales viven en config.php (raiz del repo), no en el codigo.
+// Es la misma idea que el archivo .env de Laravel.
+require_once __DIR__ . '/../../config.php';
 
 class Database
 {
-    // Datos de conexion
-    private static string $host    = 'localhost';
-    private static string $db      = 'sena_mvc';
-    private static string $user    = 'root';
-    private static string $pass    = 'base1234';
-    private static string $charset = 'utf8';
+    // Datos de conexion (tomados de config.php)
+    private static string $host    = DB_HOST;
+    private static string $db      = DB_NAME_MVC;
+    private static string $user    = DB_USER;
+    private static string $pass    = DB_PASS;
+    private static string $charset = DB_CHARSET;
 
     // Guarda la unica instancia de conexion (Singleton)
     private static ?PDO $connection = null;

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora básica</title>
+    <style>
+        body   { font-family: Arial, sans-serif; max-width: 380px; margin: 40px auto; }
+        label  { display: block; margin-top: 12px; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; }
+        button { margin-top: 16px; padding: 10px; width: 100%; background: #39a900; color: #fff; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>Calculadora básica</h2>
+
+    <!-- action: el archivo PHP que recibe los datos. method POST: los datos viajan en el cuerpo, no en la URL -->
+    <form action="calcular.php" method="POST">
+        <label for="num1">Primer número</label>
+        <!-- step="any" permite decimales; el navegador valida, pero PHP vuelve a validar -->
+        <input type="number" step="any" name="num1" id="num1" required>
+
+        <label for="operacion">Operación</label>
+        <select name="operacion" id="operacion">
+            <option value="sumar">Suma (+)</option>
+            <option value="restar">Resta (-)</option>
+            <option value="multiplicar">Multiplicación (x)</option>
+            <option value="dividir">División (/)</option>
+        </select>
+
+        <label for="num2">Segundo número</label>
+        <input type="number" step="any" name="num2" id="num2" required>
+
+        <button type="submit">Calcular</button>
+    </form>
+</body>
+</html>

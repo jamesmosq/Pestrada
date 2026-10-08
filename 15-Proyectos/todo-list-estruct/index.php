@@ -14,18 +14,19 @@ switch ($action) {
         }
         include 'views/add_todo.php';
         break;
+    // Las acciones que MODIFICAN datos solo se aceptan por POST
     case 'toggle':
-        if (isset($_GET['id']) && isset($_GET['status'])) {
-            toggleTodo($conn, $_GET['id'], $_GET['status']);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'], $_POST['status'])) {
+            toggleTodo($conn, (int) $_POST['id'], $_POST['status']);
         }
         header("Location: index.php");
-        break;
+        exit();
     case 'delete':
-        if (isset($_GET['id'])) {
-            deleteTodo($conn, $_GET['id']);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
+            deleteTodo($conn, (int) $_POST['id']);
         }
         header("Location: index.php");
-        break;
+        exit();
     default:
         $todos = getTodos($conn);
         include 'views/todo_list.php';

@@ -40,6 +40,16 @@ class TodoItem {
         return $stmt->execute();
     }
 
+    // Cambia solo el estado. update() tambien escribe "task",
+    // y al marcar una tarea no tenemos el texto: la dejaria vacia.
+    public function updateStatus() {
+        $query = "UPDATE " . $this->table_name . " SET is_completed = :is_completed WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":is_completed", $this->is_completed);
+        $stmt->bindParam(":id", $this->id);
+        return $stmt->execute();
+    }
+
     public function delete() {
         $query = "DELETE FROM " . $this->table_name . " WHERE id = :id";
         $stmt = $this->conn->prepare($query);

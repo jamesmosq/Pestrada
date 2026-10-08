@@ -1,12 +1,24 @@
-CREATE DATABASE login_db;
+-- Base de datos del miniproyecto de login.
+-- Es la misma "login_db" que usa 12-sesion (ver database/setup.sql).
+
+CREATE DATABASE IF NOT EXISTS login_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 USE login_db;
 
-CREATE TABLE usuarios (
+CREATE TABLE IF NOT EXISTS usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    nombre_completo VARCHAR(100),
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ultimo_acceso TIMESTAMP NULL,
+    activo BOOLEAN DEFAULT 1
 );
 
--- Ejemplo de inserción de usuario
-INSERT INTO usuarios (username, password) VALUES ('admin', PASSWORD('admin123'));
+-- Usuario de ejemplo: admin / admin123
+-- OJO: NO usar la funcion PASSWORD() de MySQL (ya no existe en MySQL 8
+-- y su resultado no es compatible con password_verify() de PHP).
+-- El hash se genera en PHP con:  echo password_hash('admin123', PASSWORD_DEFAULT);
+INSERT IGNORE INTO usuarios (username, email, password, nombre_completo) VALUES
+('admin', 'admin@pestrada.com', '$2y$10$TNSJ0cdliQafrmAkDpV4/u02oya.0d7KXC6EJCsgNqLytzxxjEPke', 'Administrador');

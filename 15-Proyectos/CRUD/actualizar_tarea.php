@@ -1,8 +1,14 @@
 <?php
 include("db.php");
 
+// Sin id no hay nada que editar
+if (!isset($_GET['id'])) {
+    header("Location: index.php");
+    exit;
+}
+
 if (isset($_GET['id'])) {
-    $id   = $_GET['id'];
+    $id   = (int) $_GET['id'];
     $stmt = $conn->prepare("SELECT * FROM tareas WHERE id = :id");
     $stmt->execute([':id' => $id]);
     $row  = $stmt->fetch();
@@ -17,7 +23,7 @@ if (isset($_GET['id'])) {
 }
 
 if (isset($_POST['actualizar'])) {
-    $id          = $_GET['id'];
+    $id          = (int) $_GET['id'];
     $titulo      = $_POST['titulo'];
     $descripcion = $_POST['descripcion'];
 
@@ -37,7 +43,7 @@ if (isset($_POST['actualizar'])) {
     <div class="row">
         <div class="col-md-4 mx-auto">
             <div class="card card-body">
-                <form action="actualizar_tarea.php?id=<?php echo htmlspecialchars($_GET['id']); ?>" method="POST">
+                <form action="actualizar_tarea.php?id=<?php echo $id; ?>" method="POST">
                     <div class="form-group">
                         <input type="text" name="titulo"
                                value="<?php echo htmlspecialchars($titulo); ?>"

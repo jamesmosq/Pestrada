@@ -17,7 +17,7 @@ class Database {
     private $host = "localhost";
     private $db_name = "sistema_nomina";
     private $username = "root";
-    private $password = "base1234";
+    private $password = "";
     private $conn = null;
 
     public function getConnection() {

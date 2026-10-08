@@ -6,16 +6,19 @@
 
     <div class="row">
         
-        <div class="col-md 4">
-            
+        <div class="col-md-4">
+
             <?php if(isset($_SESSION['message'])) {?>
-                <div class="alert alert-<?= $_SESSION['message_type']?> alert-dismissible fade show" role="alert">
-                <?= $_SESSION['message'] ?>
+                <div class="alert alert-<?= htmlspecialchars($_SESSION['message_type']) ?> alert-dismissible fade show" role="alert">
+                <?= htmlspecialchars($_SESSION['message']) ?>
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
                 </div>
-            <?php session_unset(); } ?>
+            <?php
+                // Borrar SOLO el mensaje; session_unset() borraria toda la sesion
+                unset($_SESSION['message'], $_SESSION['message_type']);
+            } ?>
 
             <div class="card card-body">
                 <form action="guardar_tarea.php" method="POST">
@@ -44,20 +47,26 @@
                     </thead>
                     <tbody>
                         <?php
-                        $stmt = $conn->query("SELECT * FROM tareas ORDER BY created DESC");
+                        $stmt = $conn->query("SELECT * FROM tareas ORDER BY fecha_creacion DESC");
                         while($row = $stmt->fetch()) { ?>
 
                             <tr>
-                                <td><?php echo $row['titulo'] ?></td>
-                                <td><?php echo $row['descripcion'] ?></td>
-                                <td><?php echo $row['created'] ?></td>
+                                <!-- htmlspecialchars(): todo dato que escribio un usuario se escapa al mostrarlo -->
+                                <td><?php echo htmlspecialchars($row['titulo']) ?></td>
+                                <td><?php echo htmlspecialchars($row['descripcion'] ?? '') ?></td>
+                                <td><?php echo $row['fecha_creacion'] ?></td>
                                 <td>
-                                    <a href="actualizar_tarea.php?id=<?php echo $row['id'] ?>" class="btn btn-secondary">
+                                    <a href="actualizar_tarea.php?id=<?php echo (int) $row['id'] ?>" class="btn btn-secondary">
                                     <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="eliminar_tarea.php?id=<?php echo $row['id'] ?>" class="btn btn-danger">
-                                    <i class="fas fa-trash-alt"></i>
-                                    </a>
+                                    <!-- Eliminar se hace por POST: un enlace (GET) no debe borrar datos -->
+                                    <form action="eliminar_tarea.php" method="POST" class="d-inline"
+                                          onsubmit="return confirm('¿Eliminar esta tarea?')">
+                                        <input type="hidden" name="id" value="<?php echo (int) $row['id'] ?>">
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
 

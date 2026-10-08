@@ -16,10 +16,18 @@
                 <li>
                     <span class="task-text"><?php echo htmlspecialchars($todo['task']); ?></span>
                     <div class="task-actions">
-                        <a href="index.php?action=toggle&id=<?php echo $todo['id']; ?>&status=<?php echo $todo['is_completed']; ?>">
-                            <?php echo $todo['is_completed'] ? 'Desmarcar' : 'Marcar'; ?>
-                        </a>
-                        <a href="index.php?action=delete&id=<?php echo $todo['id']; ?>">Eliminar</a>
+                        <!-- Marcar y eliminar modifican datos: se envian por POST, no con enlaces -->
+                        <form action="index.php?action=toggle" method="POST" class="inline-form">
+                            <input type="hidden" name="id" value="<?php echo (int) $todo['id']; ?>">
+                            <input type="hidden" name="status" value="<?php echo (int) $todo['is_completed']; ?>">
+                            <button type="submit" class="link-button">
+                                <?php echo $todo['is_completed'] ? 'Desmarcar' : 'Marcar'; ?>
+                            </button>
+                        </form>
+                        <form action="index.php?action=delete" method="POST" class="inline-form">
+                            <input type="hidden" name="id" value="<?php echo (int) $todo['id']; ?>">
+                            <button type="submit" class="link-button">Eliminar</button>
+                        </form>
                     </div>
                 </li>
             <?php endforeach; ?>

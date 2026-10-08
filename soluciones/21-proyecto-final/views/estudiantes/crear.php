@@ -1,0 +1,143 @@
+<?php
+// Las vistas solo se cargan a traves del router (index.php).
+// Si alguien abre este archivo directo en el navegador, lo enviamos a la aplicacion.
+if (!defined('DESDE_ROUTER')) {
+    header('Location: ../../index.php');
+    exit;
+}
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Estudiante — SENA</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<div class="container--narrow">
+    <div class="card">
+
+        <div class="page-header">
+            <h2>Nuevo estudiante</h2>
+        </div>
+
+        <form id="formCrear" action="index.php?c=estudiantes&action=guardar" method="POST">
+
+            <!-- Token CSRF: prueba que el formulario salio de nuestra pagina -->
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf); ?>">
+
+            <div class="form-group">
+                <label>
+                    Nombre completo <span class="required">*</span>
+                </label>
+                <input type="text"
+                       name="nombre"
+                       class="form-control"
+                       placeholder="Ej: Carlos Perez"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    Email institucional <span class="required">*</span>
+                </label>
+                <input type="email"
+                       name="email"
+                       class="form-control"
+                       placeholder="Ej: carlos@sena.edu.co"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label>Numero de ficha</label>
+                <input type="text"
+                       name="ficha"
+                       pattern="[0-9]{7}"
+                       maxlength="7"
+                       class="form-control"
+                       placeholder="Ej: 2758634">
+            </div>
+
+            <div class="form-group">
+                <label>Celular</label>
+                <input type="tel"
+                       name="telefono"
+                       class="form-control"
+                       placeholder="Ej: 3001234567"
+                       pattern="3[0-9]{9}">
+            </div>
+
+            <div class="form-group">
+                <label>Curso</label>
+                <select name="curso_id" class="form-control">
+                    <option value="">-- Sin curso --</option>
+                    <?php foreach ($cursos as $curso): ?>
+                        <option value="<?php echo (int) $curso['id']; ?>" >
+                            <?php echo htmlspecialchars($curso['nombre']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button type="button"
+                        class="btn btn--primary"
+                        onclick="confirmarGuardar()">
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar
+                </button>
+                <a href="index.php?c=estudiantes&action=index" class="btn btn--secondary">
+                    <i class="fa-solid fa-arrow-left"></i> Volver
+                </a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<?php require __DIR__ . '/../partials/flash.php'; ?>
+
+<script>
+    function escaparHTML(texto) {
+        const div = document.createElement('div');
+        div.textContent = texto;
+        return div.innerHTML;
+    }
+
+    // Validacion del cliente antes de enviar
+    function confirmarGuardar() {
+        const nombre = document.querySelector('[name=nombre]').value.trim();
+        const email  = document.querySelector('[name=email]').value.trim();
+
+        if (!nombre || !email) {
+            Swal.fire({
+                icon:  'warning',
+                title: 'Campos requeridos',
+                text:  'Completa nombre y email antes de continuar.',
+            });
+            return;
+        }
+
+        Swal.fire({
+            icon:              'question',
+            title:             'Confirmar registro',
+            html:              `Se registrara a: <strong>${escaparHTML(nombre)}</strong>`,
+            showCancelButton:  true,
+            confirmButtonText: 'Si, guardar',
+            cancelButtonText:  'Revisar datos',
+            confirmButtonColor:'#39a900',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('formCrear').submit();
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

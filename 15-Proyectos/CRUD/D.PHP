@@ -2,6 +2,13 @@
 // NOTA: Este archivo usa fgets(STDIN) — solo funciona por consola (CLI).
 // Para ejecutar: php D.PHP   (desde la terminal, NO desde el navegador)
 
+// En el navegador no existe STDIN (el teclado de la consola): avisamos y salimos.
+if (PHP_SAPI !== 'cli') {
+    echo "Este ejemplo se ejecuta en la consola.<br>";
+    echo "Abre la terminal en esta carpeta y escribe: <code>php D.PHP</code>";
+    exit;
+}
+
 // Ejemplo de un programa estructurado para calcular el factorial de un número
 
 // Función para calcular el factorial

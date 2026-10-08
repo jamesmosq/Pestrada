@@ -33,11 +33,15 @@ class EstudianteModel
             "INSERT INTO estudiantes (nombre, email, ficha)
              VALUES (:nombre, :email, :ficha)"
         );
-        return $stmt->execute([
-            ':nombre' => $datos['nombre'],
-            ':email'  => $datos['email'],
-            ':ficha'  => $datos['ficha'],
-        ]);
+        try {
+            return $stmt->execute([
+                ':nombre' => $datos['nombre'],
+                ':email'  => $datos['email'],
+                ':ficha'  => $datos['ficha'],
+            ]);
+        } catch (PDOException $e) {
+            return $this->manejarDuplicado($e);
+        }
     }
 
     // ── Actualizar estudiante existente ──────────────────────────────────────
@@ -50,12 +54,16 @@ class EstudianteModel
                  ficha  = :ficha
              WHERE id = :id"
         );
-        return $stmt->execute([
-            ':nombre' => $datos['nombre'],
-            ':email'  => $datos['email'],
-            ':ficha'  => $datos['ficha'],
-            ':id'     => $id,
-        ]);
+        try {
+            return $stmt->execute([
+                ':nombre' => $datos['nombre'],
+                ':email'  => $datos['email'],
+                ':ficha'  => $datos['ficha'],
+                ':id'     => $id,
+            ]);
+        } catch (PDOException $e) {
+            return $this->manejarDuplicado($e);
+        }
     }
 
     // ── Eliminar estudiante ──────────────────────────────────────────────────
@@ -63,5 +71,16 @@ class EstudianteModel
     {
         $stmt = $this->db->prepare("DELETE FROM estudiantes WHERE id = ?");
         return $stmt->execute([$id]);
+    }
+
+    // Con ERRMODE_EXCEPTION, un email repetido lanza una excepcion (codigo 23000)
+    // en lugar de devolver false. La convertimos en false para que el
+    // Controller muestre el mensaje con SweetAlert2. Otros errores se relanzan.
+    private function manejarDuplicado(PDOException $e): bool
+    {
+        if ($e->getCode() === '23000') {
+            return false;
+        }
+        throw $e;
     }
 }

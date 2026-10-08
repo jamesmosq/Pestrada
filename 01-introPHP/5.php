@@ -3,7 +3,9 @@
 echo 'Esto es una prueba';
 /* Esto es un comentario multilínea
     y otra lína de comentarios */
+echo '<br>';
 echo 'Esto es otra prueba';
+echo '<br>';
 echo 'Una prueba final';
 # Esto es un comentario al estilo de consola de una sola línea
 

@@ -10,5 +10,8 @@ if (isset($_POST['guardar_tarea'])) {
 
     $_SESSION['message']      = 'Tarea guardada satisfactoriamente';
     $_SESSION['message_type'] = 'success';
-    header("Location: index.php");
 }
+
+// Siempre redirigir y terminar el script con exit
+header("Location: index.php");
+exit;

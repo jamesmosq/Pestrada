@@ -1,3 +1,11 @@
+<?php
+// Las vistas solo se cargan a traves del router (index.php).
+// Si alguien abre este archivo directo en el navegador, lo enviamos a la aplicacion.
+if (!defined('DESDE_ROUTER')) {
+    header('Location: ../../index.php');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -57,11 +65,13 @@
                                    class="btn btn--warning btn--sm">
                                     <i class="fa-solid fa-pen-to-square"></i> Editar
                                 </a>
-                                <button class="btn btn--danger btn--sm"
-                                        onclick="confirmarEliminar(
-                                        <?php echo $est['id']; ?>,
-                                                '<?php echo addslashes($est['nombre']); ?>'
-                                                )">
+                                <!-- Los datos viajan en atributos data-* escapados,
+                                     no incrustados dentro del JavaScript -->
+                                <button type="button"
+                                        class="btn btn--danger btn--sm"
+                                        data-id="<?php echo (int) $est['id']; ?>"
+                                        data-nombre="<?php echo htmlspecialchars($est['nombre']); ?>"
+                                        onclick="confirmarEliminar(this)">
                                     <i class="fa-solid fa-trash"></i> Eliminar
                                 </button>
                             </div>
@@ -75,10 +85,25 @@
     </div>
 </div>
 
+<!-- Formulario oculto: SweetAlert2 lo envia por POST al confirmar -->
+<form id="formEliminar" action="index.php?action=eliminar" method="POST" hidden>
+    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf); ?>">
+    <input type="hidden" name="id" id="eliminarId">
+</form>
+
 <script>
     // ── Mensajes flash desde el Controller ──────────────────────────────────
-    const status  = "<?php echo $status; ?>";
+    // json_encode() convierte el valor PHP en un string JavaScript seguro.
+    // NUNCA imprimir una variable PHP "a pelo" entre comillas dentro de un script.
+    const status  = <?php echo json_encode($status); ?>;
     const mensaje = <?php echo json_encode($mensaje); ?>;
+
+    // Evita que un nombre como <img onerror=...> se ejecute dentro de la alerta
+    function escaparHTML(texto) {
+        const div = document.createElement('div');
+        div.textContent = texto;
+        return div.innerHTML;
+    }
 
     const alertas = {
         creado:    { icon: 'success', title: 'Estudiante creado'  },
@@ -99,11 +124,14 @@
     }
 
     // ── Confirmacion antes de eliminar ───────────────────────────────────────
-    function confirmarEliminar(id, nombre) {
+    function confirmarEliminar(boton) {
+        const id     = boton.dataset.id;
+        const nombre = boton.dataset.nombre;
+
         Swal.fire({
             icon:              'warning',
             title:             'Eliminar estudiante',
-            html:              `Seguro que deseas eliminar a <strong>${nombre}</strong>?
+            html:              `Seguro que deseas eliminar a <strong>${escaparHTML(nombre)}</strong>?
                                <br><small>Esta accion no se puede deshacer.</small>`,
             showCancelButton:  true,
             confirmButtonText: 'Si, eliminar',
@@ -112,7 +140,8 @@
             cancelButtonColor: '#6c757d',
         }).then((result) => {
             if (result.isConfirmed) {
-                window.location.href = `index.php?action=eliminar&id=${id}`;
+                document.getElementById('eliminarId').value = id;
+                document.getElementById('formEliminar').submit();
             }
         });
     }

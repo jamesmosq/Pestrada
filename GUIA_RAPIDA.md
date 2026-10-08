@@ -6,7 +6,7 @@ Esta guía te ayudará a empezar rápidamente con el proyecto Pestrada.
 
 ### 1. Requisitos Previos
 - WAMP, XAMPP o MAMP instalado
-- PHP 7.4+ y MySQL 5.7+
+- PHP 8.1+ y MySQL 5.7+ o MariaDB (WAMP ya los trae)
 
 ### 2. Configurar Base de Datos
 
@@ -18,28 +18,28 @@ mysql -u root -p < database/setup.sql
 Opción B - Usando phpMyAdmin:
 1. Abre phpMyAdmin (http://localhost/phpmyadmin)
 2. Importa el archivo `database/setup.sql`
-3. Verifica que se crearon 3 bases de datos:
+3. Verifica que se crearon 4 bases de datos:
    - `tareas_crud`
    - `todo_list`
    - `login_db`
+   - `sena_mvc`
 
 ### 3. Configurar el Proyecto
 
-1. Copia el archivo de configuración:
-   ```bash
-   cp .env.example .env
-   ```
+1. Copia `config.example.php` y renómbralo como `config.php` (en la raíz del proyecto).
 
-2. Edita `config.php` si necesitas cambiar credenciales de BD:
+2. Abre `config.php` y pon la contraseña de **tu** MySQL (en WAMP suele estar vacía):
    ```php
    define('DB_USER', 'root');
-   define('DB_PASS', 'tu_password');
+   define('DB_PASS', '');
    ```
+
+   `config.php` no se sube al repositorio: cada persona tiene el suyo.
 
 ### 4. Probar la Instalación
 
 Abre en tu navegador:
-- http://localhost/Pestrada_/12-sesion/login.php
+- http://localhost/Pestrada/12-sesion/login.php
 
 Credenciales de prueba:
 - **Usuario:** admin
@@ -82,6 +82,17 @@ Credenciales de prueba:
 
 **Práctica:** Desarrolla tu propio proyecto
 
+### Nivel 6: Profundización y proyecto MVC (Semanas 13-14)
+16. `16-strings/` - Funciones de texto
+17. `17-fechas/` - Fechas y horas
+18. `18-errores/` - Excepciones
+19. `19-archivos/` - Archivos, CSV y JSON
+20. `20-formularios-validacion/` - Formularios y validación
+21. `21-sweetAlert2/` - CRUD con MVC y SweetAlert2
+
+**Práctica:** cada carpeta tiene un `EJERCICIOS.md` con 12 ejercicios. Las soluciones están en `soluciones/`:
+intenta primero y compara después.
+
 ## Proyectos Incluidos
 
 ### 1. CRUD de Tareas
@@ -96,12 +107,12 @@ Credenciales de prueba:
 
 **Cómo usar:**
 ```
-http://localhost/Pestrada_/15-Proyectos/CRUD/
+http://localhost/Pestrada/15-Proyectos/CRUD/
 ```
 
 **Tecnologías:**
-- MySQLi con prepared statements
-- Bootstrap 5
+- PDO con consultas preparadas
+- Bootstrap 4
 - Separación de vistas con includes
 
 ### 2. Todo List Estructural
@@ -115,7 +126,7 @@ http://localhost/Pestrada_/15-Proyectos/CRUD/
 
 **Cómo usar:**
 ```
-http://localhost/Pestrada_/15-Proyectos/todo-list-estruct/
+http://localhost/Pestrada/15-Proyectos/todo-list-estruct/
 ```
 
 **Tecnologías:**
@@ -133,7 +144,7 @@ http://localhost/Pestrada_/15-Proyectos/todo-list-estruct/
 
 **Cómo usar:**
 ```
-http://localhost/Pestrada_/15-Proyectos/todo-list-poo/
+http://localhost/Pestrada/15-Proyectos/todo-list-poo/
 ```
 
 **Arquitectura:**
@@ -155,7 +166,8 @@ views/
 
 ## Funciones Helper Útiles
 
-El proyecto incluye `helpers.php` con funciones útiles:
+El proyecto incluye `helpers.php` con funciones útiles. No se carga solo: inclúyelo donde lo necesites con
+`require_once __DIR__ . '/../helpers.php';` (ajusta la ruta según la carpeta).
 
 ### Debug y Testing
 ```php
@@ -201,8 +213,8 @@ echo timeAgo($timestamp); // "hace 5 minutos"
 
 ### Validación
 ```php
-// Validar email
-if (validateEmail($email)) { }
+// Validar email (función nativa de PHP)
+if (filter_var($email, FILTER_VALIDATE_EMAIL)) { }
 
 // Validar teléfono
 if (isValidPhone($phone)) { }
@@ -224,7 +236,7 @@ displayFlash('success');
 
 ### Seguridad
 ```php
-// SIEMPRE escapar salida HTML
+// SIEMPRE escapar salida HTML (escape() está en config.php)
 echo escape($username);
 
 // SIEMPRE usar prepared statements
@@ -235,7 +247,7 @@ $stmt->bindParam(':id', $id);
 $hash = password_hash($password, PASSWORD_DEFAULT);
 if (password_verify($password, $hash)) { }
 
-// SIEMPRE validar tokens CSRF
+// SIEMPRE validar tokens CSRF (verifyCsrfToken() está en 12-sesion/functions.php)
 if (verifyCsrfToken($_POST['csrf_token'])) { }
 ```
 
@@ -251,6 +263,7 @@ $db = $database->getConnection();
 ```
 
 ### Sesiones
+Estas funciones están en `12-sesion/functions.php`:
 ```php
 // Verificar login
 if (!isLoggedIn()) {
@@ -292,6 +305,15 @@ Asegúrate de no tener espacios antes de `<?php` o después de `?>`
 ### Sesión no funciona
 Verifica que `session_start()` sea lo primero en el archivo
 
+### Error: "Failed opening required ... config.php"
+Falta copiar `config.example.php` como `config.php`.
+
+### La página se ve sin estilos y con "Undefined variable"
+Abriste una vista (`views/...`) en lugar del `index.php`. En los proyectos MVC siempre se entra por `index.php`.
+
+### Un ejemplo dice "se ejecuta en la consola"
+Usa `readline()` o `STDIN` para leer del teclado. Ejecútalo en la terminal: `php archivo.php`.
+
 ## Recursos Adicionales
 
 ### Documentación PHP
@@ -323,7 +345,7 @@ Verifica que `session_start()` sea lo primero en el archivo
 ## Contribuir
 
 ¿Encontraste un error o quieres agregar algo?
-Lee `CONTRIBUTING.md` para saber cómo contribuir.
+Coméntalo con el instructor o abre un issue en el repositorio.
 
 ## Soporte
 
@@ -334,4 +356,4 @@ Si tienes preguntas:
 
 ---
 
-¡Feliz aprendizaje! 🚀
+¡Feliz aprendizaje!
